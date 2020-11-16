@@ -1,0 +1,9 @@
+py -m venv evn_name
+.\evn_name\Scripts\activate
+
+
+git clone url
+git pull origin branch_name
+git push origin branch_name
+git add .
+git commit -m "message"

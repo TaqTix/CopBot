@@ -28,12 +28,22 @@ class NikeBot:
         chrome_options = Options()
         # Setup chrome options for better performance / less issues with elements in the way
         # headless browser = No UI = Less Resources;
-        # chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless")
         # incognito for no leftover cookies
         chrome_options.add_argument("--incognito")
+        # user agent for desktop chrome browser (google search what is my user agent for yours)
+        self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"
+        chrome_options.add_argument(f'user-agent={self.user_agent}')
+        # disable infobars
+        chrome_options.add_argument("disable-infobars")
+        # disable extensions
+        chrome_options.add_argument("--disable-extensions")
+        # disable sandbox to Bypass OS security Model
+        chrome_options.add_argument("--no-sandbox")
         # use maximzied when not using headless
-        # chrome_options.add_argument("start-maximized")
-        chrome_options.add_argument("--window-size=1920x1080")
+        chrome_options.add_argument("start-maximized")
+        # chrome_options.add_argument("--window-size=1920x1080")
+        
         # https://medium.com/@pyzzled/running-headless-chrome-with-selenium-in-python-3f42d1f5ff1d
         self.driver = webdriver.Chrome(executable_path='Backend Scripts\\chromedriver.exe', 
                             options=chrome_options) #, seleniumwire_options={'verify_ssl': False}
@@ -227,7 +237,7 @@ class NikeBot:
         #We're on the page that ask's whether you want to login or checkout as guest now;
         print("made it to checkout as guest")
         self.wait.until(EC.visibility_of_element_located(
-            (By.XPATH, '//button[@id="qa-guest-checkout"]'))).click()
+            (By.XPATH, '//button[@aria-label="Guest Checkout"]'))).click()
         #input first name
         self.wait.until(EC.visibility_of_element_located(
             (By.XPATH, '//input[@id="firstName"]'))).send_keys('John')
@@ -312,19 +322,19 @@ class NikeBot:
         # time.sleep(2)
         
         # wait for cc frame & switch to it;
-        cc_iframe = self.wait.until(EC.frame_to_be_available_and_switch_to_it(
-            (By.XPATH,"//iframe[@class='credit-card-iframe mt1 u-full-width prl2-sm']")))
+        self.wait.until(EC.frame_to_be_available_and_switch_to_it(
+            (By.XPATH,"//iframe[@class='credit-card-iframe mt1 u-full-width prl2-sm']"))) 
         #self.actions.move_to_element(cc_iframe).perform()
         
         #time.sleep(1)
         ccNumField = self.wait.until(EC.visibility_of_element_located(
             (By.XPATH, "//input[@id='creditCardNumber']"))).send_keys("1234567812345678")
-        self.driver.until(ccNumField)
-        self.driver.execute_script("arguments[0].scrollIntoView(true);", ccNumField)
-        self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//input[@class='mod-ncss-input ncss-input pt2-sm pr4-sm pb2-sm pl4-sm' and @id='expirationDate']"))).send_keys("0822")
-        self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//input[@class='mod-ncss-input ncss-input pt2-sm pr4-sm pb2-sm pl4-sm' and @id='cvNumber']"))).send_keys("682")
+        # self.wait.until(ccNumField)
+        # self.wait.until(self.driver.execute_script("arguments[0].scrollIntoView(true);", ccNumField))
+        self.wait.until(EC.visibility_of_element_located(
+            (By.XPATH, "//input[@id='expirationDate']"))).send_keys("0822")
+        self.wait.until(EC.visibility_of_element_located(
+            (By.XPATH, "//input[@id='cvNumber']"))).send_keys("682")
         self.driver.save_screenshot(f"{self.driver.service.process.pid}-all done.png")
         time.sleep(10)
 
@@ -338,7 +348,7 @@ if __name__ == '__main__':
     login_temp_pass = 'Password!'        # password to login
     #test1= NikeBot(url1, size, login_username, login_temp_pass, True )
     # test2= NikeBot(url2, size, login_username, login_temp_pass )
-    test3= NikeBot(url3, 'M 7.5', login_username, login_temp_pass, True )
+    test3= NikeBot(url3, 'M 6.5', login_username, login_temp_pass, True )
     # test4= NikeBot(url4, size, login_username, login_temp_pass )
 
     try:
@@ -346,7 +356,7 @@ if __name__ == '__main__':
         test3.main_loop()
     except:
         #test1.close()
-        test3.close()
+        pass
     else:
         #test1.close()
         test3.close()
