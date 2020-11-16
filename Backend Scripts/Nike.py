@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
 import time
 import threading
 
@@ -31,8 +32,8 @@ class NikeBot:
         # incognito for no leftover cookies
         chrome_options.add_argument("--incognito")
         # use maximzied when not using headless
-        chrome_options.add_argument("start-maximized")
-        # chrome_options.add_argument("--window-size=1920x1080")
+        # chrome_options.add_argument("start-maximized")
+        chrome_options.add_argument("--window-size=1920x1080")
         # https://medium.com/@pyzzled/running-headless-chrome-with-selenium-in-python-3f42d1f5ff1d
         self.driver = webdriver.Chrome(executable_path='Backend Scripts\\chromedriver.exe', 
                             options=chrome_options) #, seleniumwire_options={'verify_ssl': False}
@@ -43,6 +44,7 @@ class NikeBot:
         }
         #self.driver.implicitly_wait(1)
         self.wait = WebDriverWait(self.driver, delay)
+        self.actions = ActionChains(self.driver)
         
     def main_loop(self):
         #will monitor the URL & select size (new function) & finally click add to cart
@@ -66,8 +68,7 @@ class NikeBot:
                     print("Purchase Button Clickable, Going to select size;")
                 
             except Exception as err:
-                print(err)
-                print(f'+[main_loop]: {err}')
+                print(f'+[main_loop]: {str(err)}')
                 print(f'+[main_loop]: Sleeping 10 Seconds & Refreshing the Page.')
                 time.sleep(10)
                 self.driver.refresh()
@@ -76,7 +77,7 @@ class NikeBot:
                 time.sleep(1) #i havent found a better way to wait after running javascript  
             else:
                 print("hit main else")
-                if purchaseBtn.is_displayed():
+                if purchaseBtn.is_enabled():
                     purchaseEnabled = True
                     return self.select_size()
         
@@ -84,24 +85,25 @@ class NikeBot:
     def select_size(self):
 
         try:
-            sizeBtn = self.wait.until(EC.visibility_of_element_located((By.XPATH, f'//button[contains(text(), "{self.size}")]'))).click()
+            sizeBtn = self.wait.until(EC.visibility_of_element_located((By.XPATH, f'//button[contains(text(), "{self.size}")]')))
+            sizeBtn = self.wait.until(EC.element_to_be_clickable((By.XPATH, f'//button[contains(text(), "{self.size}")]')))
             if (sizeBtn):
-                print("sizeBtn ready to be clicked")
-                sizeBtn.click()
-                self.driver.save_screenshot(f"{self.driver.service.process.pid}-show size clicked.png")
-
-            #sizeBtn = self.driver.find_element_by_xpath(f'//button[contains(text(), "{self.size}")]')
-            
-           
-            
-            #self.wait.until(EC.element_to_be_clickable(
-                #(By.XPATH, f'//button[contains(text(), "{self.size}")]'))).click()
+                try:
+                    self.actions.move_to_element(sizeBtn).click(sizeBtn).perform()
+                    # sizeBtn = self.wait.until(
+                    #         lambda driver: driver.execute_script("arguments[0].scrollIntoView(true);", sizeBtn)
+                    #     )
+                except Exception as err:
+                    print(f"+[select_size]: {str(err)}")
+                else:
+                    print("sizeBtn ready to be clicked -- taking screenshot")
+                    # self.wait.until(EC.element_to_be_clickable((By.XPATH, f'//button[contains(text(), "{self.size}")]'))).click()
+                    self.driver.save_screenshot(f"{self.driver.service.process.pid}-show size clicked.png")
             
         except Exception as err:
-            #print(err)
             #self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            self.driver.close()
-            return print(f"+[select_size]: Error Selecting Size, Is it available? {err}")
+            self.close()
+            return print(f"+[select_size]: Error Selecting Size, Is it available? {str(err)}")
         else:
             print("+[select_size]: Size Selected")
             return self.add_to_cart()
@@ -112,10 +114,15 @@ class NikeBot:
             add2cartBtn = self.wait.until(EC.element_to_be_clickable(
             (By.XPATH, '//button[@data-qa="add-to-cart"]')))
             if (add2cartBtn):
-                print("add to cart btn clickable, scrolling & clicking...") 
+                print("add to cart btn clickable, scrolling & clicking...")
+                try: 
+                    self.actions.move_to_element(add2cartBtn).click().perform()
+                except Exception as err:
+                    print(f"+[add_to_cart]: {str(err)}")
                 add2cartBtn.click()
         except Exception as err:
             print(f'+[add-to-cart]: {err}')
+            self.close()
         else:
             return self.go_to_cart()
 
@@ -132,7 +139,8 @@ class NikeBot:
                 cart_button.click()
                 
         except Exception as err:
-            return print(f"+[go_to_cart]: {err}")
+            print(f"+[go_to_cart]: {err}")
+            return self.close()
         else:
             return self.check_out()
 
@@ -158,28 +166,32 @@ class NikeBot:
 
 
     def close(self):
-        return self.driver.close()
+        return self.driver.close(self.driver.session_id)
 
     def check_out(self):
         # member or guest checkout;
         self.driver.save_screenshot(f"{self.driver.service.process.pid} checkout.png")
         #time.sleep(2) #time to let frame popup
         if self.guest_checkout == True:
-            try:
+            return self.check_out_as_guest()
+        else:
+            return self.check_out_as_member()
+
+            #try:
                 #attempt to click checkout-link on popup, if it fails, click cart-icon on nav-bar
-                print("made it to checkout")
-                checkoutBtn = self.wait.until(EC.visibility_of_element_located(
-                (By.XPATH, '//*button[contains(., "CHECKOUT"))]'))).click()
+                # print("made it to checkout")
+                # checkoutBtn = self.wait.until(EC.element_to_be_clickable(
+                # (By.XPATH, '//button[contains(text(), "MEMBER CHECKOUT"))]')))
                 # if (checkoutBtn):
                 #     print("checkout button found, clicking to enter guest checkout")
                 #     checkoutBtn.click()
                 #     print("clickeddddd")
                 
-            except Exception as err:
-                print(f"+[check_out]: {err}")
-                return False
-            else:
-                return self.check_out_as_guest()
+            # except Exception as err:
+            #     print(f"+[check_out]: {str(err)}")
+            #     self.driver.close()
+            # else:
+            #     return self.check_out_as_guest()
                 # print("+[check_out]: Entered Checkout Processes")
                 # #now login as member
                 # # scroll to top of window for screenshot
@@ -203,6 +215,7 @@ class NikeBot:
             #self.driver.find_element_by_xpath('//input[@data-componentname="emailAddress"]').send_keys(self.username)
         except Exception as err:
             print(f"Login Error: {err}")
+            return self.close()
         else:
             self.driver.find_element_by_xpath('//input[@data-componentname="password"]').send_keys(self.password)
             self.driver.save_screenshot(f"{self.driver.service.process.pid}-before clicking login.png")
@@ -213,10 +226,10 @@ class NikeBot:
     def check_out_as_guest(self):
         #We're on the page that ask's whether you want to login or checkout as guest now;
         print("made it to checkout as guest")
-        self.wait.until(EC.element_to_be_clickable(
+        self.wait.until(EC.visibility_of_element_located(
             (By.XPATH, '//button[@id="qa-guest-checkout"]'))).click()
         #input first name
-        self.wait.until(EC.presence_of_element_located(
+        self.wait.until(EC.visibility_of_element_located(
             (By.XPATH, '//input[@id="firstName"]'))).send_keys('John')
         
         #input last name
@@ -253,24 +266,67 @@ class NikeBot:
             (By.XPATH, '//button[@class="js-next-step saveAddressBtn mod-ncss-btn ncss-btn-accent ncss-brand pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg d-md-ib u-uppercase u-rounded fs14-sm mod-button-width"]'))).click()
 
         #click continue to payment information
-        self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, '//button[@class="js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm"]'))).click()
+        try:
 
+            # self.wait.until(EC.visibility_of_element_located(
+            #     (By.XPATH, '//button[contains(text(), "Continue')))
+            #contToPaymentBtn = self.driver.find_element_by_class_name('js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm')
+            # contToPaymentBtn = self.wait.until(EC.visibility_of_element_located((By.LINK_TEXT, 'CONTINUE TO PAYMENT')))
+            # newContainer = self.wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'ncss-col-sm-12 prl5-sm pt2-sm mb5-sm')))
+            # self.actions.move_to_element(newContainer).perform()
+            #contToPaymentBtn.click() 
+            # self.wait.until(EC.element_to_be_clickable(
+               # (By.CLASS_NAME, 'js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm')))
+            # self.wait.until(
+            #     lambda driver: self.driver.find_element_by_class_name('js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm').click()    
+            # )
+            # self.wait.until(
+            #     lambda driver: self.driver.find_element_by_class_name('ncss-row')    
+            # )
+
+            # sizeBtn = self.wait.until(
+            #         lambda driver: driver.execute_script("arguments[0].scrollIntoView(true);", sizeBtn)
+            #     )
+
+            #contFrame = self.wait.until(EC.frame_to_be_available_and_switch_to_it(
+                #(By.XPATH, '//button[@class="js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm"]')))
+            
+            contBtn = self.wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="shipping"]/div/div[3]/div/button')))
+            
+            self.driver.execute_script("arguments[0].scrollIntoView(true);", contBtn)
+                    
+            
+            button = self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, '//button[@class="js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm"]')
+            ))
+            button.click()
+            
+          #  contBtn.click()
+           # self.driver.find_element_by_class_name('js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm').click()
+        except Exception as err:
+            print(f"+[check_out_as_guest]: {str(err)}")
+            return self.close()
+
+        # (By.XPATH, '//button[contains(text(), "Checkout")]')))
         #now entering credit card information
-        time.sleep(2)
+        # time.sleep(2)
         
         # wait for cc frame & switch to it;
-        self.wait.until(EC.frame_to_be_available_and_switch_to_it(
+        cc_iframe = self.wait.until(EC.frame_to_be_available_and_switch_to_it(
             (By.XPATH,"//iframe[@class='credit-card-iframe mt1 u-full-width prl2-sm']")))
-        self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(1)
-        self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//input[@class='mod-ncss-input ncss-input pt2-sm pr4-sm pb2-sm pl4-sm' and @id='creditCardNumber']"))).send_keys("1234567812345678")
+        #self.actions.move_to_element(cc_iframe).perform()
+        
+        #time.sleep(1)
+        ccNumField = self.wait.until(EC.visibility_of_element_located(
+            (By.XPATH, "//input[@id='creditCardNumber']"))).send_keys("1234567812345678")
+        self.driver.until(ccNumField)
+        self.driver.execute_script("arguments[0].scrollIntoView(true);", ccNumField)
         self.wait.until(EC.element_to_be_clickable(
             (By.XPATH, "//input[@class='mod-ncss-input ncss-input pt2-sm pr4-sm pb2-sm pl4-sm' and @id='expirationDate']"))).send_keys("0822")
         self.wait.until(EC.element_to_be_clickable(
             (By.XPATH, "//input[@class='mod-ncss-input ncss-input pt2-sm pr4-sm pb2-sm pl4-sm' and @id='cvNumber']"))).send_keys("682")
         self.driver.save_screenshot(f"{self.driver.service.process.pid}-all done.png")
+        time.sleep(10)
 
 if __name__ == '__main__':
     url1 = 'https://www.nike.com/launch/t/air-max-triax-96-university-red/'
