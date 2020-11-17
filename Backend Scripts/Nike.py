@@ -11,6 +11,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 import threading
 
+startTime = time.time()
 
 #GLOBAL VARS
 delay = 15 #seconds -> Later, If the drops happen at specific times usually can have bot only check most
@@ -30,7 +31,7 @@ class NikeBot:
         chrome_options = Options()
         # Setup chrome options for better performance / less issues with elements in the way
         # headless browser = No UI = Less Resources;
-        chrome_options.add_argument('--headless')
+        # chrome_options.add_argument('--headless')
         # incognito for no leftover cookies
         chrome_options.add_argument('--incognito')
         # user agent for desktop chrome browser (google search what is my user agent for yours)
@@ -126,9 +127,18 @@ class NikeBot:
 
     def add_to_cart(self):
         try:
-            print("made it to add_to_cart")
+            print("+[add_to_cart]: made it to add_to_cart")
             add2cartBtn = self.wait.until(EC.element_to_be_clickable(
-                (By.XPATH, '//button[@data-qa="add-to-cart"]'))).click()
+                (By.XPATH, '//button[@data-qa="add-to-cart"]')))
+            try:
+                self.actions.move_to_element(add2cartBtn).click(add2cartBtn).perform()
+            except Exception as err:
+                print("+[add_to_cart]: error moving to add to cart button", str(err))
+                self.driver.execute_script("arguments[0].scrollIntoView(true);", add2cartBtn)
+                print("+[add_to_cart]: scrolled into view successful")
+                self.wait.until(EC.element_to_be_clickable(
+                    (By.XPATH, '//button[@data-qa="add-to-cart"]'))).click()
+
             # if (add2cartBtn):
             #     print("add to cart btn clickable, scrolling & clicking...")
             #     try: 
@@ -146,9 +156,7 @@ class NikeBot:
 
     def go_to_cart(self):
         # click iframe popup that says checkout;
-        #cart_button.click()
-        print("made it to go_to_cart")
-        cntToCart = False
+        print("+[go_to_cart]: made it to go_to_cart")
         
         try:
             self.driver.find_element_by_tag_name('body').send_keys(Keys.HOME)
@@ -159,7 +167,7 @@ class NikeBot:
             self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, '//button[contains(text(), "Checkout")]'))).click()
             #self.actions.move_to_element(cart_button).perform()
-            print("cart button found, clicking")
+            print("+[go_to_cart]: cart button found, clicking")
 
         except Exception as err:
             print(f"+[go_to_cart]: {str(err)}")
@@ -175,16 +183,16 @@ class NikeBot:
         self.driver.save_screenshot(f"{self.driver.service.process.pid} checkout.png")
         #time.sleep(2) #time to let frame popup
         if type(self.guest_checkout) is dict:
-            print("Going to guest checkout")
+            print("+[check_out]: Going to guest checkout")
             return self.check_out_as_guest()
         else:
             return self.check_out_as_member()
 
     def check_out_as_member(self):
         #We're on the page that ask's whether you want to login or checkout as guest now;
-        print("made it to check_out_as_member")
+        print("+[check_out_as_member]: made it to check_out_as_member")
         try: #fill in username
-            self.wait.until(EC.presence_of_element_located(
+            self.wait.until(EC.visibility_of_element_located(
                 (By.XPATH, '//input[@data-componentname="emailAddress"]'))).send_keys(self.username)
             #self.driver.find_element_by_xpath('//input[@data-componentname="emailAddress"]').send_keys(self.username)
         except Exception as err:
@@ -343,7 +351,8 @@ class NikeBot:
                 self.wait.until(EC.visibility_of_element_located(
                     (By.XPATH, "//input[@id='cvNumber']"))).send_keys(self.guest_checkout['CVC'])
                 self.driver.save_screenshot(f"{self.driver.service.process.pid}-all done.png")
-                #time.sleep(10)
+                print("all done")
+                # time.sleep(25)
                 return True
 
 if __name__ == '__main__':
@@ -351,6 +360,8 @@ if __name__ == '__main__':
     url2 = 'https://www.nike.com/launch/t/sb-dunk-high-paul-rodriguez/'  #no checkout button available until 1/21 @ 8am;
     url3 = 'https://www.nike.com/launch/t/kyrie-7-creator'
     url4 = 'https://www.nike.com/launch/t/air-jordan-1-high-black-gym-red/'
+    url5 = 'https://www.nike.com/launch/t/air-jordan-1-metallic-gold' #no checkout button until 11/30 @ 8am;
+    url6 = 'https://www.nike.com/launch/t/air-force-1-high-goretex-boot-wheat'
     size = 'M 10'
     login_username = 'email@email.com' # email to login @ nike.com
     login_temp_pass = 'Password!'        # password to login
@@ -371,7 +382,8 @@ if __name__ == '__main__':
         "CVC" : "682"
     }
 
-    test3= NikeBot(url3, 'M 6.5', login_username, login_temp_pass, guest_keys )
+    # test3= NikeBot(url3, 'M 6.5', login_username, login_temp_pass, guest_keys )
+    test3= NikeBot(url6, 'M 6.5', login_username, login_temp_pass, guest_keys )
     # test4= NikeBot(url4, size, login_username, login_temp_pass )
 
     try:
@@ -380,11 +392,13 @@ if __name__ == '__main__':
     except:
         #test1.close()
         test3.close()
-        pass
+        return False
     else:
         #test1.close()
         test3.close()
     print("Code Ran Successfully")
+    execTime = (time.time() - startTime)
+    print('Execution Time in Seconds: ' + str(execTime))
     # test3.close()
     # test4.close()
 

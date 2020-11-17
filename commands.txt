@@ -1,13 +1,24 @@
-py -m venv evn_name
-.\evn_name\Scripts\activate
+#Make & Activate ENV
+    py -m venv evn_name
+    .\evn_name\Scripts\activate
 
+# push changes to dev branch github;
+    git status
+    git checkout dev
+    git add .
+    git commit -m "message"
+    git push origin dev
 
-git clone url
-git pull origin branch_name
-git push origin branch_name
-git add .
-git commit -m "message"
 
 #overwrite existing local files;
-git fetch --all
-git reset --hard origin/master
+    git fetch --all
+    git reset --hard origin/master
+
+#Merging Dev Branch with Master;
+    Summary: you need to switch to your develop branch, pull the code from the remote repo, then merge it into master (locally) and push it back to remote repo (into master branch)
+
+    git checkout dev
+    git pull origin dev - only to pull repo on github;
+    git checkout master
+    git merge develop
+    git push origin master
