@@ -7,51 +7,58 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 import time
 import threading
 
 
 #GLOBAL VARS
-delay = 10 #seconds -> Later, If the drops happen at specific times usually can have bot only check most
+delay = 15 #seconds -> Later, If the drops happen at specific times usually can have bot only check most
                    #frequently around then
 
 class NikeBot:
 
-    def __init__(self, url, size, username, password, guest_checkout=False):
+    def __init__(self, url, size, username, password, guest_checkout):
         # only grabbing one username/password so that I can spawn multiple threads of this process for multiple profiles.
         self.url = str(url)
         self.size = str(size)
         self.username = str(username)
         self.password = str(password)
-        self.guest_checkout = bool(guest_checkout)
+        self.guest_checkout = guest_checkout
+        
         # open webdriver, incognito & start maximized
         chrome_options = Options()
         # Setup chrome options for better performance / less issues with elements in the way
         # headless browser = No UI = Less Resources;
-        chrome_options.add_argument("--headless")
+        chrome_options.add_argument('--headless')
         # incognito for no leftover cookies
-        chrome_options.add_argument("--incognito")
+        chrome_options.add_argument('--incognito')
         # user agent for desktop chrome browser (google search what is my user agent for yours)
         self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"
         chrome_options.add_argument(f'user-agent={self.user_agent}')
         # disable infobars
-        chrome_options.add_argument("disable-infobars")
+        chrome_options.add_argument('disable-infobars')
         # disable extensions
-        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument('--disable-extensions')
         # disable sandbox to Bypass OS security Model
-        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument('--no-sandbox')
         # use maximzied when not using headless
-        chrome_options.add_argument("start-maximized")
-        # chrome_options.add_argument("--window-size=1920x1080")
+        #chrome_options.add_argument('start-maximized')
+        chrome_options.add_argument('--window-size=1920,1080')
+        # do not verify ssl
+        chrome_options.add_argument('verify_ssl="False"')
+        # applicable to windows os only
+        chrome_options.add_argument('--disable-gpu')
         
         # https://medium.com/@pyzzled/running-headless-chrome-with-selenium-in-python-3f42d1f5ff1d
         self.driver = webdriver.Chrome(executable_path='Backend Scripts\\chromedriver.exe', 
                             options=chrome_options) #, seleniumwire_options={'verify_ssl': False}
-        #Modiftying Headers for headless version
+        #Modifying Headers for headless version
         self.driver.header_overrides = {
             'Access-Control-Allow-Origin': f'{self.url}',
             'SameSite': 'True',
         }
+        self.session_id = self.driver.session_id
         #self.driver.implicitly_wait(1)
         self.wait = WebDriverWait(self.driver, delay)
         self.actions = ActionChains(self.driver)
@@ -66,18 +73,14 @@ class NikeBot:
         purchaseEnabled = False
         while(purchaseEnabled == False):
             try:
-                
                 purchaseBtn = self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, '//button[@data-qa="add-to-cart"]')))
-                if (purchaseBtn):
-                    print("we did it")
-                # self.wait.until(
-                #     lambda driver: driver.execute_script("arguments[0].scrollIntoView(true);", purchaseBtn)
-                # )
-                    purchaseEnabled = True
-                    print("Purchase Button Clickable, Going to select size;")
-                
             except Exception as err:
+                # Still need to update this section with wait commands;
+                # possible resturctor not sure if else gets executed after exceptions are raised;
+                # since in loop can just move else statement outside of loop.
+                # needs to do timeoutexception and restart loop if button not clickable / enabled;
+
                 print(f'+[main_loop]: {str(err)}')
                 print(f'+[main_loop]: Sleeping 10 Seconds & Refreshing the Page.')
                 time.sleep(10)
@@ -86,8 +89,9 @@ class NikeBot:
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(1) #i havent found a better way to wait after running javascript  
             else:
-                print("hit main else")
+                print("Purchase Button Clickable")
                 if purchaseBtn.is_enabled():
+                    print("Purchase Button Enabled")
                     purchaseEnabled = True
                     return self.select_size()
         
@@ -104,9 +108,9 @@ class NikeBot:
                     #         lambda driver: driver.execute_script("arguments[0].scrollIntoView(true);", sizeBtn)
                     #     )
                 except Exception as err:
-                    print(f"+[select_size]: {str(err)}")
+                    print(f"+[select_size]: Error Moving To Size Element: {str(err)}")
                 else:
-                    print("sizeBtn ready to be clicked -- taking screenshot")
+                    print("+[select_size]: sizeBtn ready to be clicked -- taking screenshot")
                     # self.wait.until(EC.element_to_be_clickable((By.XPATH, f'//button[contains(text(), "{self.size}")]'))).click()
                     self.driver.save_screenshot(f"{self.driver.service.process.pid}-show size clicked.png")
             
@@ -122,103 +126,67 @@ class NikeBot:
         try:
             print("made it to add_to_cart")
             add2cartBtn = self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, '//button[@data-qa="add-to-cart"]')))
-            if (add2cartBtn):
-                print("add to cart btn clickable, scrolling & clicking...")
-                try: 
-                    self.actions.move_to_element(add2cartBtn).click().perform()
-                except Exception as err:
-                    print(f"+[add_to_cart]: {str(err)}")
-                add2cartBtn.click()
+                (By.XPATH, '//button[@data-qa="add-to-cart"]'))).click()
+            # if (add2cartBtn):
+            #     print("add to cart btn clickable, scrolling & clicking...")
+            #     try: 
+            #         self.actions.move_to_element(add2cartBtn).perform()
+            #     except Exception as err:
+            #         print(f"+[add_to_cart]: Couldn't Move to Element: {str(err)}")
+            #     else:
+            #         add2cartBtn.click()
+            #         self.driver.save_screenshot(f"{self.driver.service.process.pid} add2cartBtn clicked.png")
         except Exception as err:
             print(f'+[add-to-cart]: {err}')
-            self.close()
+            return self.close()
         else:
             return self.go_to_cart()
 
     def go_to_cart(self):
         # click iframe popup that says checkout;
-        print("made it to go_to_cart")
-        
         #cart_button.click()
-        try:
-            cart_button = self.wait.until(EC.element_to_be_clickable(
-                (By.XPATH, '//button[contains(text(), "Checkout")]')))
-            if (cart_button):
+        print("made it to go_to_cart")
+        cntToCart = False
+        while cntToCart == False:
+            try:
+                self.driver.find_element_by_tag_name('body').send_keys(Keys.HOME)
+                self.driver.save_screenshot(f"{self.driver.service.process.pid} checkout-popup.png")
+                # cart_button = self.wait.until(EC.frame_to_be_available_and_switch_to_it(
+                #     (By.XPATH, '//button[contains(text(), "Checkout")]')))
+                #if (cart_button): 
+                self.wait.until(EC.element_to_be_clickable(
+                    (By.XPATH, '//button[contains(text(), "Checkout")]'))).click()
+                #self.actions.move_to_element(cart_button).perform()
                 print("cart button found, clicking")
-                cart_button.click()
+                cntToCart = True
+            
+            # except TimeoutException as err:
+            #     try:
+                    
+                    
+                    
+            except Exception as err:
+                print(f"+[go_to_cart]: {str(err)}")
+                return self.close()
+            else:
+                return self.check_out()
                 
-        except Exception as err:
-            print(f"+[go_to_cart]: {err}")
-            return self.close()
-        else:
-            return self.check_out()
-
-        # else:
-        #     time.sleep(5)
-        #     x_items = self.driver.find_element_by_xpath('//div[@class="ncss-col-sm-12 css-8yxtvd"]')
-        #     x_items_innerHTML = str(x_items.get_attribute("innerHTML"))
-        #     if x_items_innerHTML.startswith('1'):
-        #         self.driver.save_screenshot(f"{self.driver.service.process.pid}-1 item in cart.png")
-        #         return self.check_out()
-        #     elif x_items_innerHTML.startswith('0'):
-        #         #No items found
-        #         #self.driver.save_screenshot(f"{self.driver.service.process.pid}-no item cart.png")
-        #         print("+[go_to_cart]: No Items Found In Cart, Restarting")
-        #         self.driver.get(self.url)
-        #         time.sleep(2)
-        #         #self.driver.execute_script("window.history.go(-1)")
-        #         #time.sleep(2) #necessary for above script to finish going back in browser;
-        #         return self.select_size() #test this
-        #     else:
-        #         print("+[go_to_cart]: More than 1 Item, or Error")
-        #         return False
-
-
     def close(self):
-        return self.driver.close(self.driver.session_id)
+        return self.driver.close() # self.session_id
 
     def check_out(self):
         # member or guest checkout;
         self.driver.save_screenshot(f"{self.driver.service.process.pid} checkout.png")
         #time.sleep(2) #time to let frame popup
-        if self.guest_checkout == True:
+        if type(self.guest_checkout) is dict:
+            print("Going to guest checkout")
             return self.check_out_as_guest()
         else:
             return self.check_out_as_member()
 
-            #try:
-                #attempt to click checkout-link on popup, if it fails, click cart-icon on nav-bar
-                # print("made it to checkout")
-                # checkoutBtn = self.wait.until(EC.element_to_be_clickable(
-                # (By.XPATH, '//button[contains(text(), "MEMBER CHECKOUT"))]')))
-                # if (checkoutBtn):
-                #     print("checkout button found, clicking to enter guest checkout")
-                #     checkoutBtn.click()
-                #     print("clickeddddd")
-                
-            # except Exception as err:
-            #     print(f"+[check_out]: {str(err)}")
-            #     self.driver.close()
-            # else:
-            #     return self.check_out_as_guest()
-                # print("+[check_out]: Entered Checkout Processes")
-                # #now login as member
-                # # scroll to top of window for screenshot
-                # self.driver.execute_script("window.scrollTo(0,0);")
-                # # take screenshot to make sure it added to cart;
-                # self.driver.save_screenshot(f"{self.driver.service.process.pid}-member or guest.png")
-                # #return self.check_out_as_member()
-                # if self.guest_checkout == True:
-                #     print(f"+[check_out]: Checking out as Guest: {self.guest_checkout}")
-                #     return self.check_out_as_guest()
-                # else:
-                #     print(f"+[check_out]: Checking out as Guest: {self.guest_checkout}")
-                #     print("+[check_out]: Checking out as Member")
-                #     return self.check_out_as_member()
-
     def check_out_as_member(self):
         #We're on the page that ask's whether you want to login or checkout as guest now;
+        print("made it to check_out_as_member")
         try: #fill in username
             self.wait.until(EC.presence_of_element_located(
                 (By.XPATH, '//input[@data-componentname="emailAddress"]'))).send_keys(self.username)
@@ -236,107 +204,129 @@ class NikeBot:
     def check_out_as_guest(self):
         #We're on the page that ask's whether you want to login or checkout as guest now;
         print("made it to checkout as guest")
-        self.wait.until(EC.visibility_of_element_located(
-            (By.XPATH, '//button[@aria-label="Guest Checkout"]'))).click()
-        #input first name
-        self.wait.until(EC.visibility_of_element_located(
-            (By.XPATH, '//input[@id="firstName"]'))).send_keys('John')
-        
-        #input last name
-        self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, '//input[@id="lastName"]'))).send_keys('Doe')
-
-        self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@id="addressSuggestionOptOut"]'))).click()
-
-        #start to fill in address
-        self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, '//input[@id="address1"]'))).send_keys('2400 harbor blvd')
-        
-        #fill in city
-        self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, '//input[@id="city"]'))).send_keys('costa mesa')
-    
-        #select state from drop down
-        myselect = Select(self.driver.find_element_by_id('state'))
-        #select visible text / state
-        myselect.select_by_visible_text("California")
-        
-        #enter zip code
-        self.driver.find_element_by_xpath('//input[@id="postalCode"]').send_keys('92626')
-        
-        #enter email address
-        self.driver.find_element_by_xpath('//input[@id="email"]').send_keys('nowaythisisarealnikeeamil@gmail.com')
-        
-        #enter phone number
-        self.driver.find_element_by_xpath('//input[@id="phoneNumber"]').send_keys('1234567897')
-        
-        #click continue after entering address
-        self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, '//button[@class="js-next-step saveAddressBtn mod-ncss-btn ncss-btn-accent ncss-brand pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg d-md-ib u-uppercase u-rounded fs14-sm mod-button-width"]'))).click()
-
-        #click continue to payment information
+                
+        # print("PAGE SOURCE: ")
+        # print(self.driver.page_source)
+        #time.sleep(1000)
+        #time.sleep(2)
         try:
-
-            # self.wait.until(EC.visibility_of_element_located(
-            #     (By.XPATH, '//button[contains(text(), "Continue')))
-            #contToPaymentBtn = self.driver.find_element_by_class_name('js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm')
-            # contToPaymentBtn = self.wait.until(EC.visibility_of_element_located((By.LINK_TEXT, 'CONTINUE TO PAYMENT')))
-            # newContainer = self.wait.until(EC.visibility_of_element_located((By.CLASS_NAME, 'ncss-col-sm-12 prl5-sm pt2-sm mb5-sm')))
-            # self.actions.move_to_element(newContainer).perform()
-            #contToPaymentBtn.click() 
-            # self.wait.until(EC.element_to_be_clickable(
-               # (By.CLASS_NAME, 'js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm')))
-            # self.wait.until(
-            #     lambda driver: self.driver.find_element_by_class_name('js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm').click()    
-            # )
-            # self.wait.until(
-            #     lambda driver: self.driver.find_element_by_class_name('ncss-row')    
-            # )
-
-            # sizeBtn = self.wait.until(
-            #         lambda driver: driver.execute_script("arguments[0].scrollIntoView(true);", sizeBtn)
-            #     )
-
-            #contFrame = self.wait.until(EC.frame_to_be_available_and_switch_to_it(
-                #(By.XPATH, '//button[@class="js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm"]')))
+            # self.wait.until(EC.presence_of_element_located(
+            #     (By.XPATH, '//*[@id="qa-guest-checkout-mobile"]/span')))
+            self.wait.until(EC.visibility_of_element_located(
+                    (By.ID, 'qa-guest-checkout'))).click()
             
-            contBtn = self.wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="shipping"]/div/div[3]/div/button')))
+        except TimeoutException as err:
+            try:
+                self.wait.until(EC.element_to_be_clickable(
+                    (By.ID, 'qa-guest-checkout-mobile'))).click()
+                # self.wait.until(EC.element_to_be_clickable(
+                #     (By.XPATH, '//*[@id="qa-guest-checkout"'))).click()
+            except Exception as err:
+                print("+[check_out_as_guest]: TimeoutException: Neither regular or mobile guest checkout button was found", str(err))
+                return self.close()
+            # time.sleep(30)
+            # //*[@id="qa-guest-checkout"]
+            # //*[@id="qa-guest-checkout"]
+            #//*[@id="qa-guest-checkout-mobile"]/span
+            # /html/body/div/div/div[3]/div[2]/div/div/div[1]/div[1]/div/button/span
+            else:
+                print("+[check_out_as_guest]: WE FOUND IT")
             
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", contBtn)
-                    
-            
-            button = self.wait.until(EC.element_to_be_clickable(
-                (By.XPATH, '//button[@class="js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm"]')
-            ))
-            button.click()
-            
-          #  contBtn.click()
-           # self.driver.find_element_by_class_name('js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm').click()
         except Exception as err:
-            print(f"+[check_out_as_guest]: {str(err)}")
-            return self.close()
+            print("+[check_out_as_guest]: ", str(err))
+        else:
 
-        # (By.XPATH, '//button[contains(text(), "Checkout")]')))
-        #now entering credit card information
-        # time.sleep(2)
+            # guest_keys = {
+            #     "FirstName" : "John",
+            #     "LastName" : "Doe",
+            #     "Address1" : "2400 harbor blvd",
+            #     "Address2" : "apt 2",
+            #     "City" : "costa mesa",
+            #     "State" : "California",
+            #     "Zip" :   "92626",
+            #     "Email" : "nowaythisisarealnikeemail@gmail.com",
+            #     "PhoneNumber" : "123456789",
+            #     "CreditCardNumber": "1234567812345678",
+            #     "ExpDate" : "0822",
+            #     "CVC" : "682"
+            # }
+
+            #input first name
+            self.wait.until(EC.visibility_of_element_located(
+                (By.XPATH, '//input[@id="firstName"]'))).send_keys(self.guest_checkout['FirstName'])
+            
+            #input last name
+            self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, '//input[@id="lastName"]'))).send_keys(self.guest_checkout['LastName'])
+
+            self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, '//a[@id="addressSuggestionOptOut"]'))).click()
+
+            #start to fill in address
+            self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, '//input[@id="address1"]'))).send_keys(self.guest_checkout['Address1'])
+            
+            #fill in city
+            self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, '//input[@id="city"]'))).send_keys(self.guest_checkout['City'])
         
-        # wait for cc frame & switch to it;
-        self.wait.until(EC.frame_to_be_available_and_switch_to_it(
-            (By.XPATH,"//iframe[@class='credit-card-iframe mt1 u-full-width prl2-sm']"))) 
-        #self.actions.move_to_element(cc_iframe).perform()
-        
-        #time.sleep(1)
-        ccNumField = self.wait.until(EC.visibility_of_element_located(
-            (By.XPATH, "//input[@id='creditCardNumber']"))).send_keys("1234567812345678")
-        # self.wait.until(ccNumField)
-        # self.wait.until(self.driver.execute_script("arguments[0].scrollIntoView(true);", ccNumField))
-        self.wait.until(EC.visibility_of_element_located(
-            (By.XPATH, "//input[@id='expirationDate']"))).send_keys("0822")
-        self.wait.until(EC.visibility_of_element_located(
-            (By.XPATH, "//input[@id='cvNumber']"))).send_keys("682")
-        self.driver.save_screenshot(f"{self.driver.service.process.pid}-all done.png")
-        time.sleep(10)
+            #select state from drop down
+            myselect = Select(self.driver.find_element_by_id('state'))
+            #select visible text / state
+            myselect.select_by_visible_text(self.guest_checkout['State'])
+            
+            #enter zip code
+            self.driver.find_element_by_xpath('//input[@id="postalCode"]').send_keys(self.guest_checkout['Zip'])
+            
+            #enter email address
+            self.driver.find_element_by_xpath('//input[@id="email"]').send_keys(self.guest_checkout['Email'])
+            
+            #enter phone number
+            self.driver.find_element_by_xpath('//input[@id="phoneNumber"]').send_keys(self.guest_checkout['PhoneNumber'])
+            
+            #click continue after entering address
+            self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, '//button[@class="js-next-step saveAddressBtn mod-ncss-btn ncss-btn-accent ncss-brand pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg d-md-ib u-uppercase u-rounded fs14-sm mod-button-width"]'))).click()
+
+            #click continue to payment information
+            try:
+                contBtn = self.wait.until(EC.visibility_of_element_located((By.ID, 'shipping')))
+                
+                #self.driver.execute_script("arguments[0].scrollIntoView(true);", contBtn)
+
+                # button = self.wait.until(EC.element_to_be_clickable(
+                #     (By.XPATH, '//button[@class="js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm"]')
+                # ))
+                
+            #  contBtn.click()
+            # self.driver.find_element_by_class_name('js-next-step continuePaymentBtn mod-ncss-btn ncss-btn-accent ncss-brand mod-button-width pt3-sm prl5-sm pb3-sm pt2-lg pb2-lg u-md-ib u-uppercase u-rounded fs14-sm').click()
+            except Exception as err:
+                print(f"+[check_out_as_guest]: {str(err)}")
+                return self.close()
+
+            # (By.XPATH, '//button[contains(text(), "Checkout")]')))
+            #now entering credit card information
+            # time.sleep(2)
+            else:
+                # button.click()
+                contBtn = self.wait.until(EC.element_to_be_clickable((By.ID, 'shipping'))).click()
+                # wait for cc frame & switch to it;
+                self.wait.until(EC.frame_to_be_available_and_switch_to_it(
+                    (By.XPATH,"//iframe[@class='credit-card-iframe mt1 u-full-width prl2-sm']"))) 
+                #self.actions.move_to_element(cc_iframe).perform()
+                
+                #time.sleep(1)
+                ccNumField = self.wait.until(EC.visibility_of_element_located(
+                    (By.XPATH, "//input[@id='creditCardNumber']"))).send_keys(self.guest_checkout['CreditCardNumber'])
+                # self.wait.until(ccNumField)
+                # self.wait.until(self.driver.execute_script("arguments[0].scrollIntoView(true);", ccNumField))
+                self.wait.until(EC.visibility_of_element_located(
+                    (By.XPATH, "//input[@id='expirationDate']"))).send_keys(self.guest_checkout['ExpDate'])
+                self.wait.until(EC.visibility_of_element_located(
+                    (By.XPATH, "//input[@id='cvNumber']"))).send_keys(self.guest_checkout['CVC'])
+                self.driver.save_screenshot(f"{self.driver.service.process.pid}-all done.png")
+                #time.sleep(10)
+                return True
 
 if __name__ == '__main__':
     url1 = 'https://www.nike.com/launch/t/air-max-triax-96-university-red/'
@@ -348,7 +338,22 @@ if __name__ == '__main__':
     login_temp_pass = 'Password!'        # password to login
     #test1= NikeBot(url1, size, login_username, login_temp_pass, True )
     # test2= NikeBot(url2, size, login_username, login_temp_pass )
-    test3= NikeBot(url3, 'M 6.5', login_username, login_temp_pass, True )
+    guest_keys = {
+        "FirstName" : "John",
+        "LastName" : "Doe",
+        "Address1" : "2400 harbor blvd",
+        "Address2" : "apt 2",
+        "City" : "costa mesa",
+        "State" : "California",
+        "Zip" :   "92626",
+        "Email" : "nowaythisisarealnikeemail@gmail.com",
+        "PhoneNumber" : "123456789",
+        "CreditCardNumber": "1234567812345678",
+        "ExpDate" : "0822",
+        "CVC" : "682"
+    }
+
+    test3= NikeBot(url3, 'M 6.5', login_username, login_temp_pass, guest_keys )
     # test4= NikeBot(url4, size, login_username, login_temp_pass )
 
     try:
@@ -356,6 +361,7 @@ if __name__ == '__main__':
         test3.main_loop()
     except:
         #test1.close()
+        test3.close()
         pass
     else:
         #test1.close()
