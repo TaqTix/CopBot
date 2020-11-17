@@ -7,3 +7,7 @@ git pull origin branch_name
 git push origin branch_name
 git add .
 git commit -m "message"
+
+#overwrite existing local files;
+git fetch --all
+git reset --hard origin/master
