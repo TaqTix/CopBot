@@ -392,7 +392,7 @@ if __name__ == '__main__':
     except:
         #test1.close()
         test3.close()
-        return False
+        
     else:
         #test1.close()
         test3.close()
