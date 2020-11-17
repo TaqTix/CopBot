@@ -9,6 +9,8 @@
     git commit -m "message"
     git push origin dev
 
+    git commit -am "message" - commit all changes to all files to local repo
+
 
 #overwrite existing local files;
     git fetch --all
