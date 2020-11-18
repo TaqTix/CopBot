@@ -2,5 +2,8 @@
 **/vscode/*
 **/scripts/*
 **/venv/*
-*.log
-*.code-workspace
+**.log
+**.code-workspace
+**login_details.py
+**.png
+**__pycache__

@@ -12,7 +12,12 @@ import time
 import threading
 import os
 from os import path
+import pickle
 from urllib.parse import urlparse
+# if (path.exists(path.join(os.getcwd(), self.cookies_file_path))
+if (path.exists(path.join(os.getcwd(), 'Backend Scripts/login_details.py'))):
+    print("login file exists, importing")
+    from login_details import USERNAME, PASSWORD, CVC
 
 # This is for Nike.com/launch only & on a computer;
 
@@ -22,22 +27,23 @@ delay = 15 #seconds -> Later, If the drops happen at specific times usually can 
 
 class NikeBot:
 
-    def __init__(self, url, size, username, password, guest_checkout):
+    def __init__(self, url, size, username, password, cvc, guest_checkout):
         # only grabbing one username/password so that I can spawn multiple threads of this process for multiple profiles.
         self.url = str(url)
         self.size = str(size)
         self.username = str(username)
         self.password = str(password)
+        self.cvc = str(cvc)
         self.guest_checkout = guest_checkout
         
         # open webdriver, incognito & start maximized
-        chrome_options = Options()
+        self.chrome_options = Options()
         # Setup chrome options for better performance / less issues with elements in the way
         # headless browser = No UI = Less Resources;
-        # chrome_options.add_argument('--headless')
+        # self.chrome_options.add_argument('--headless')
         
         # incognito for no leftover cookies
-        chrome_options.add_argument('--incognito')
+        # self.chrome_options.add_argument('--incognito')
         
         # user agent for desktop chrome browser (google search what is my user agent for yours)
         # self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"
@@ -64,39 +70,42 @@ class NikeBot:
         "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
         }
 
-        chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
+        self.chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
         # disable infobars
-        chrome_options.add_argument('disable-infobars')
+        self.chrome_options.add_argument('disable-infobars')
         # disable extensions
-        chrome_options.add_argument('--disable-extensions')
+        self.chrome_options.add_argument('--disable-extensions')
         # disable sandbox to Bypass OS security Model 
-        chrome_options.add_argument('--no-sandbox')
+        self.chrome_options.add_argument('--no-sandbox')
+        self.chrome_options.add_argument("--disable-web-security")
+        self.chrome_options.add_argument("--disable-site-isolation-trials")
         # use maximzied when not using headless
         #chrome_options.add_argument('start-maximized')
         # chrome_options.add_argument('--window-size=1920,1080')
+        # self.chrome_options.add_argument('--window-size=414,896') 
         # do not verify ssl
-        chrome_options.add_argument('verify_ssl="False"')
+        self.chrome_options.add_argument('verify_ssl="False"')
         # ignore certificate errors
-        chrome_options.add_argument('ignore-certificate-errors')
+        self.chrome_options.add_argument('ignore-certificate-errors')
         # applicable to windows os only
         # chrome_options.add_argument('--disable-gpu')
         
-        cookies_file_path = 'Backend Scripts/Cookies/nike.pkl'
+        self.cookies_file_path = 'Backend Scripts/Cookies/nike_cookies.txt'
 
         # check violent python homework to figure out how to do this with all systems including linux; something about joining absolute path with relative path;
-        if (path.exists(path.join(os.getcwd(), cookies_file_path)) == True):
+        if (path.exists(path.join(os.getcwd(), self.cookies_file_path)) == True):
             self.cookies = True
         else:
             self.cookies = False
 
         # https://medium.com/@pyzzled/running-headless-chrome-with-selenium-in-python-3f42d1f5ff1d
         self.driver = webdriver.Chrome(executable_path='Backend Scripts/chromedriver.exe', 
-                            options=chrome_options) #, seleniumwire_options={'verify_ssl': False}
+                            options=self.chrome_options) #, seleniumwire_options={'verify_ssl': False}
         # Modifying Headers for headless version
-        # self.driver.header_overrides = {
-        #     'Access-Control-Allow-Origin': f'{self.url}',
-        #     'SameSite': 'True',
-        # }
+        self.driver.header_overrides = {
+            'Access-Control-Allow-Origin': f'{self.url}',
+            'SameSite': 'True',
+        }
         self.session_id = self.driver.session_id
         #self.driver.implicitly_wait(1)
         self.wait = WebDriverWait(self.driver, delay)
@@ -105,16 +114,19 @@ class NikeBot:
     def main_loop(self):
         # checks for cookies first
         if (self.cookies) == False:
-            print("hit main_loop")
+            print("+[main_loop]: logging in to get cookies")
             if(self.login_to_get_cookies()):
-                print("got cookies & saved file")
+                print("+[main_loop]: got cookies & saved file")
             else:
-                return print("login to get cookies failed")
-
-        #will monitor the URL & select size (new function) & finally click add to cart
+                self.close()
+                return print("+[main_loop]: login to get cookies failed")
+      
+            #will monitor the URL & select size (new function) & finally click add to cart
         self.driver.get(self.url)
+        if (self.cookies) is not False:
+            print("+[main_loop]: loading cookies")
+            self.load_cookies()
         # looks for cookies might want this above, then close connection, reopen with cookies already; 
-        
 
         #Scroll Window to "height" to uncover Size & add-to-cart buttons just in case they are covered;
         #self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -123,6 +135,7 @@ class NikeBot:
         purchaseEnabled = False
         while(purchaseEnabled == False):
             try:
+                
                 purchaseBtn = self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, '//button[@data-qa="add-to-cart"]')))
             except (TimeoutException, NoSuchElementException) as err:
@@ -147,47 +160,103 @@ class NikeBot:
                 if purchaseBtn.is_enabled(): # makes sure its enabled & clickable;
                     print("+[main_loop]: Purchase Button Enabled")
                     purchaseEnabled = True # exit loop
-                    time.sleep(200)
-                    return print("we found the purchase button, moving to select size (after reprogram)")
+                    # print("we found the purchase button, moving to select size (after reprogram)")
+                    return self.select_size()
+
     def login_to_get_cookies(self):
         parseUrl = urlparse(self.url)
         loginUrl = parseUrl.scheme + "://" + parseUrl.netloc + "/login"
         self.driver.get(loginUrl)
-        time.sleep(100)
-        return False
+        print("+[login_to_get_cookies]: made it to login_to_get_cookies")
+        try: #fill in username
+            self.wait.until(EC.visibility_of_element_located(
+                (By.XPATH, '//input[@data-componentname="emailAddress"]'))).send_keys(self.username)
+            #self.driver.find_element_by_xpath('//input[@data-componentname="emailAddress"]').send_keys(self.username)
+        except Exception as err:
+            print(f"+[login_to_get_cookies]: Visibility of Email Input Element Not Found: {err}")
+            return self.close()
+        else:
+            self.driver.find_element_by_xpath('//input[@data-componentname="password"]').send_keys(self.password)
+            # save screenshot for headless
+            self.driver.save_screenshot(f"{self.driver.service.process.pid}-after entering email and password.png")
+            # Click Sign In Button
+            self.wait.until(EC.visibility_of_element_located(
+                (By.XPATH, '//input[@value="SIGN IN"]'))).click()
+            # save screenshot for headless;
+            
+            # self.driver.save_screenshot(f"{self.driver.service.process.pid}-after clicking login.png")
+            # Create cookies file;
+            #self.wait.until(EC.visibility_of_element_located((By.TAG_NAME, 'title')))
+            # Need to wait until page refreshes to pull cookies;
+            
+            while 'Login' in self.driver.title:
+                print("sleeping for 1 second until page refresh to grab cookies ------------------------------------------")
+                time.sleep(1)
+
+            print("WE WAITED UNTIL PAGE REFRESH TO GRAB COOKIES")
+            try:
+                self.create_cookies()
+            except Exception as err:
+                print("Yeah hit the error")
+            else:
+                self.load_cookies()
+                return True
+
+    def create_cookies(self):
+        # Create Cookie File (usually after login)
+        with open(self.cookies_file_path, "wb") as writeFile:
+            pickle.dump(self.driver.get_cookies(), writeFile)
+            #filehandler.close()
+        return True
+    def load_cookies(self):
+        # Load Cookie File;
+        while not os.access(self.cookies_file_path, os.R_OK):
+            print("Not Readable Yet")
+            time.sleep(1)
+        if(path.isfile(self.cookies_file_path)):
+            print("+[load_cookies]: Cookie File Exists, Loading Cookies & Refreshing")
+
+            with open(self.cookies_file_path, "rb") as cookiesfile:
+                cookies = pickle.load(cookiesfile)
+                for cookie in cookies:
+                    self.driver.add_cookie(cookie)
+                #cookiesfile.close()
+                self.driver.refresh() # neccessary to load cookies just loaded;
 
     def select_size(self):
         try:
             sizeBtn = self.wait.until(EC.visibility_of_element_located((By.XPATH, f'//button[contains(text(), "{self.size}")]')))
-            sizeBtn = self.wait.until(EC.element_to_be_clickable((By.XPATH, f'//button[contains(text(), "{self.size}")]')))
+            #sizeBtn = self.wait.until(EC.element_to_be_clickable((By.XPATH, f'//button[contains(text(), "{self.size}")]')))
             if (sizeBtn):
                 try:
-                    self.actions.move_to_element(sizeBtn).click(sizeBtn).perform()
+                    print("+[select_size]: trying to move to sizeBtn")
+                    self.actions.move_to_element(sizeBtn).perform()
                     # sizeBtn = self.wait.until(
                     #         lambda driver: driver.execute_script("arguments[0].scrollIntoView(true);", sizeBtn)
                     #     )
                 except Exception as err:
                     print(f"+[select_size]: Error Moving To Size Element: {str(err)}")
-                else:
-                    print("+[select_size]: sizeBtn ready to be clicked -- taking screenshot")
-                    # self.wait.until(EC.element_to_be_clickable((By.XPATH, f'//button[contains(text(), "{self.size}")]'))).click()
-                    self.driver.save_screenshot(f"{self.driver.service.process.pid}-show size clicked.png")
+                # else:
+                #     #print("+[select_size]: sizeBtn ready to be clicked -- taking screenshot")
+                #     # self.wait.until(EC.element_to_be_clickable((By.XPATH, f'//button[contains(text(), "{self.size}")]'))).click()
+                #     # self.driver.save_screenshot(f"{self.driver.service.process.pid}-show size clicked.png")
             
         except Exception as err:
             #self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             self.close()
             return print(f"+[select_size]: Error Selecting Size, Is it available? {str(err)}")
         else:
+            sizeBtn = self.wait.until(EC.element_to_be_clickable((By.XPATH, f'//button[contains(text(), "{self.size}")]'))).click()
             print("+[select_size]: Size Selected")
             return self.add_to_cart()
 
     def add_to_cart(self):
+        print("+[add_to_cart]: Attempting to click add_to_cart button")
         try:
-            print("+[add_to_cart]: made it to add_to_cart")
             add2cartBtn = self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, '//button[@data-qa="add-to-cart"]')))
             try:
-                self.actions.move_to_element(add2cartBtn).click(add2cartBtn).perform()
+                self.actions.move_to_element(add2cartBtn).perform()
             except Exception as err:
                 print("+[add_to_cart]: error moving to add to cart button", str(err))
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", add2cartBtn)
@@ -198,8 +267,12 @@ class NikeBot:
             print(f'+[add-to-cart]: {err}')
             return self.close()
         else:
+            self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, '//button[@data-qa="add-to-cart"]'))).click()
+            
+            # self.driver.save_screenshot(f"{self.driver.service.process.pid}-add to cart succesful.png")
+            print("+[add_to_cart]: self.add_to_cart successful")
             return self.go_to_cart()
-
     def go_to_cart(self):
         # click iframe popup that says checkout;
         print("+[go_to_cart]: made it to go_to_cart")
@@ -212,7 +285,7 @@ class NikeBot:
             print("+[go_to_cart]: cart button on pop-up found, clicking")
 
         except Exception as err:
-            print(f"+[go_to_cart]: {str(err)}")
+            print(f"+[go_to_cart]: {dir(err)}")
             return self.close()
         else:
             return self.check_out()
@@ -227,26 +300,20 @@ class NikeBot:
             print("+[check_out]: Going to guest checkout")
             return self.check_out_as_guest()
         else:
+            print("+[check_out]: Going to member checkout")
             return self.check_out_as_member()
 
     def check_out_as_member(self):
-        #We're on the page that ask's whether you want to login or checkout as guest now;
-        print("+[check_out_as_member]: made it to check_out_as_member")
-        try: #fill in username
-            self.wait.until(EC.visibility_of_element_located(
-                (By.XPATH, '//input[@data-componentname="emailAddress"]'))).send_keys(self.username)
-            #self.driver.find_element_by_xpath('//input[@data-componentname="emailAddress"]').send_keys(self.username)
-        except Exception as err:
-            print(f"+[check_out_as_member]: Visibility of Email Input Element Not Found: {err}")
-            return self.close()
-        else:
-            self.driver.find_element_by_xpath('//input[@data-componentname="password"]').send_keys(self.password)
-            self.driver.save_screenshot(f"{self.driver.service.process.pid}-before clicking login.png")
-            self.wait.until(EC.visibility_of_element_located(
-                (By.XPATH, '//input[@value="MEMBER CHECKOUT"]'))).click()
-            #self.driver.find_element_by_xpath('//input[@value="MEMBER CHECKOUT"]').click()
-            self.driver.save_screenshot(f"{self.driver.service.process.pid}-after clicking login.png")
-            return 
+        print("+[check_out_as_member]: Made it to checkout as member")
+        time.sleep(5)
+        # We're on page where we just need to fill in CVC and click 2 buttons to confirm order;
+        #time.sleep(20)
+        # self.driver.save_screenshot(f"{self.driver.service.process.pid} member checkout.png")
+        cvc_field = self.wait.until(EC.visibility_of_element_located((By.XPATH, "//input[@id='cvNumber']")))
+        cvc_field = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@id='cvNumber']"))).send_keys(self.cvc)
+        self.driver.save_screenshot(f"{self.driver.service.process.pid} member checkout.png")
+        time.sleep(35)
+        return self.close()
 
     def check_out_as_guest(self):
         #We're on the page that ask's whether you want to login or checkout as guest now;
@@ -359,6 +426,7 @@ class NikeBot:
                     self.driver.save_screenshot(f"{self.driver.service.process.pid}-all done.png")
                 print("+[check_out_as_guest]: all done")
                 # time.sleep(25)
+                print("+[main]: Code Ran Successfully")
                 return True
 
 if __name__ == '__main__':
@@ -373,8 +441,9 @@ if __name__ == '__main__':
     url9 = 'https://www.nike.com/launch/t/kybrid-s2-best-of'
 
     size = 'M 10'
-    login_username = 'email@email.com' # email to login @ nike.com
-    login_temp_pass = 'Password!'        # password to login
+    login_username = USERNAME # email to login @ nike.com
+    login_temp_pass = PASSWORD        # password to login
+    cvc = CVC
     #test1= NikeBot(url1, size, login_username, login_temp_pass, True )
     # test2= NikeBot(url2, size, login_username, login_temp_pass )
     guest_keys = {
@@ -397,30 +466,16 @@ if __name__ == '__main__':
     #test3= NikeBot(url8, 'M 10', login_username, login_temp_pass, guest_keys )
     # test3= NikeBot(url7, 'M 10', login_username, login_temp_pass, guest_keys )
     # test3= NikeBot(url4, size, login_username, login_temp_pass )
-    test3= NikeBot(url8, size, login_username, login_temp_pass, guest_keys )
+    test3= NikeBot(url8, size, login_username, login_temp_pass, cvc, False )
     
 
     try:
-        #test1.main_loop()
-        test3.main_loop()
-    except:
-        #test1.close()
+        test3.main_loop()            
+    except Exception as err:
+        print("__main__: ", str(err))
         test3.close()
-        
     else:
-        #test1.close()
         test3.close()
-    print("+[main]: Code Ran Successfully")
-    execTime = (time.time() - startTime)
-    print('+[main]: Execution Time in Seconds: ' + str(execTime))
-    # test3.close()
-    # test4.close()
-
-    # test3= NikeBot(url3, 'M 7.5', login_username, login_temp_pass )
-    # test3.main_loop()
-    # test3.close()
-
-    # test4= NikeBot(url4, size, login_username, login_temp_pass )
-    # test4.main_loop()
-    # test4.close()
-    #test.close()
+        print("+[main]: Code Ran Successfully")
+        execTime = (time.time() - startTime)
+        print('+[main]: Execution Time in Seconds: ' + str(execTime))
