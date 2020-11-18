@@ -10,6 +10,9 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 import time
 import threading
+import os
+from os import path
+from urllib.parse import urlparse
 
 # This is for Nike.com/launch only & on a computer;
 
@@ -31,44 +34,88 @@ class NikeBot:
         chrome_options = Options()
         # Setup chrome options for better performance / less issues with elements in the way
         # headless browser = No UI = Less Resources;
-        chrome_options.add_argument('--headless')
+        # chrome_options.add_argument('--headless')
+        
         # incognito for no leftover cookies
         chrome_options.add_argument('--incognito')
+        
         # user agent for desktop chrome browser (google search what is my user agent for yours)
-        self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"
-        chrome_options.add_argument(f'user-agent={self.user_agent}')
+        # self.user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36"
+        #chrome_options.add_argument(f'user-agent={self.user_agent}')
+        # mobile_emulation = {
+
+        # "deviceMetrics": { "width": 360, "height": 640, "pixelRatio": 3.0 },
+
+        # "userAgent": "Mozilla/5.0 (Linux; Android 4.2.1; en-us; Nexus 5 Build/JOP40D) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.166 Mobile Safari/535.19"
+        # }
+
+        # chrome_options = Options()
+
+        # chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
+
+        # driver = webdriver.Chrome(chrome_options = chrome_options)
+        # Mobile Emulation for iOS device;
+        mobile_emulation = {
+            # device metrics for iPhone XS Max
+        "deviceMetrics": { "width": 414, "height": 896, "pixelRatio": 3.0 },
+            # user agent for iPhone XS Max with latest iOS as of 11/17/2020
+            # Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1
+            # user agent for iPhone XS Max up to date software (chrome);
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
+        }
+
+        chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
         # disable infobars
         chrome_options.add_argument('disable-infobars')
         # disable extensions
         chrome_options.add_argument('--disable-extensions')
-        # disable sandbox to Bypass OS security Model
+        # disable sandbox to Bypass OS security Model 
         chrome_options.add_argument('--no-sandbox')
         # use maximzied when not using headless
         #chrome_options.add_argument('start-maximized')
-        chrome_options.add_argument('--window-size=1920,1080')
+        # chrome_options.add_argument('--window-size=1920,1080')
         # do not verify ssl
         chrome_options.add_argument('verify_ssl="False"')
         # ignore certificate errors
         chrome_options.add_argument('ignore-certificate-errors')
         # applicable to windows os only
-        chrome_options.add_argument('--disable-gpu')
+        # chrome_options.add_argument('--disable-gpu')
         
+        cookies_file_path = 'Backend Scripts/Cookies/nike.pkl'
+
+        # check violent python homework to figure out how to do this with all systems including linux; something about joining absolute path with relative path;
+        if (path.exists(path.join(os.getcwd(), cookies_file_path)) == True):
+            self.cookies = True
+        else:
+            self.cookies = False
+
         # https://medium.com/@pyzzled/running-headless-chrome-with-selenium-in-python-3f42d1f5ff1d
-        self.driver = webdriver.Chrome(executable_path='Backend Scripts\\chromedriver.exe', 
+        self.driver = webdriver.Chrome(executable_path='Backend Scripts/chromedriver.exe', 
                             options=chrome_options) #, seleniumwire_options={'verify_ssl': False}
         # Modifying Headers for headless version
-        self.driver.header_overrides = {
-            'Access-Control-Allow-Origin': f'{self.url}',
-            'SameSite': 'True',
-        }
+        # self.driver.header_overrides = {
+        #     'Access-Control-Allow-Origin': f'{self.url}',
+        #     'SameSite': 'True',
+        # }
         self.session_id = self.driver.session_id
         #self.driver.implicitly_wait(1)
         self.wait = WebDriverWait(self.driver, delay)
         self.actions = ActionChains(self.driver)
-        
+    
     def main_loop(self):
+        # checks for cookies first
+        if (self.cookies) == False:
+            print("hit main_loop")
+            if(self.login_to_get_cookies()):
+                print("got cookies & saved file")
+            else:
+                return print("login to get cookies failed")
+
         #will monitor the URL & select size (new function) & finally click add to cart
         self.driver.get(self.url)
+        # looks for cookies might want this above, then close connection, reopen with cookies already; 
+        
+
         #Scroll Window to "height" to uncover Size & add-to-cart buttons just in case they are covered;
         #self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         #Setup While Loop, will refresh page every 10seconds (we can make this much more effecient)
@@ -79,9 +126,6 @@ class NikeBot:
                 purchaseBtn = self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, '//button[@data-qa="add-to-cart"]')))
             except (TimeoutException, NoSuchElementException) as err:
-                # Still need to update this section with wait commands;
-                # possible resturctor not sure if else gets executed after exceptions are raised;
-                # since in loop can just move else statement outside of loop.
                 # needs to do timeoutexception and restart loop if button not clickable / enabled;
                 print(f'+[main_loop]: {str(err)}')
                 print(f'+[main_loop]: Sleeping 10 Seconds & Refreshing the Page.')
@@ -103,8 +147,14 @@ class NikeBot:
                 if purchaseBtn.is_enabled(): # makes sure its enabled & clickable;
                     print("+[main_loop]: Purchase Button Enabled")
                     purchaseEnabled = True # exit loop
-                    return self.select_size()
-        
+                    time.sleep(200)
+                    return print("we found the purchase button, moving to select size (after reprogram)")
+    def login_to_get_cookies(self):
+        parseUrl = urlparse(self.url)
+        loginUrl = parseUrl.scheme + "://" + parseUrl.netloc + "/login"
+        self.driver.get(loginUrl)
+        time.sleep(100)
+        return False
 
     def select_size(self):
         try:

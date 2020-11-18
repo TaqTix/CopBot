@@ -1,4 +1,6 @@
+**/.vscode/*
 **/vscode/*
 **/scripts/*
 **/venv/*
 *.log
+*.code-workspace
