@@ -19,7 +19,9 @@ if (path.exists(path.join(os.getcwd(), 'Backend Scripts/login_details.py'))):
     print("login file exists, importing")
     from login_details import USERNAME, PASSWORD, CVC
 
-# This is for Nike.com/launch only & on a computer;
+# This is for Nike.com/launch only & on a computer;'
+# using burp & iPhone Wi-Fi proxy settings, i was able to find out how to find the appversion & experienceversion
+# needed for
 
 #GLOBAL VARS
 delay = 15 #seconds -> Later, If the drops happen at specific times usually can have bot only check most
@@ -195,12 +197,6 @@ class NikeBot:
             # Need to wait until page refreshes to pull cookies;
             
             self.wait.until(EC.title_is('Nike. Just Do It. Nike.com'))
-
-            # while 'Login' in self.driver.title:
-            #     print("sleeping for 1 second until page refresh to grab cookies ------------------------------------------")
-            #     time.sleep(.5)
-
-            # print("Page Refreshed & Now Creating Cookies File")
             print("TITLE ON NEW PAGE = ", str(self.driver.title))
             try:
                 if(self.create_cookies()):
@@ -218,18 +214,20 @@ class NikeBot:
         print("+[create_cookies]: Creating Cookies")
         cookies_list = self.driver.get_cookies()
         print(type(cookies_list))
-        while type(cookies_list) is not list:
-            print("+[create_cookies]: Create cookies not yet a list")
+        # while type(cookies_list) is not list:
+        #     print("+[create_cookies]: Create cookies not yet a list")
         # print(type(cookies_list))
         # print(cookies_list)
+        
         if((os.access(self.cookies_file_path, os.W_OK) == True)):
-            pickle.dump(cookies_list, open(self.cookies_file_path, "wb"))
+            pickle.dump(cookies_list, open(self.cookies_file_path, "wb+"))
         # if((os.access(self.cookies_file_path, os.R_OK))):
             return True
+        else:
+            print("cant access file to write;")
     def load_cookies(self):
         # Load Cookie File;
-
-        while (os.access(self.cookies_file_path, os.R_OK) == False):
+        while ((os.access(self.cookies_file_path, os.R_OK) == False) ):
             print("Not Readable Yet")
             time.sleep(.5)
         if(path.isfile(self.cookies_file_path)):
@@ -238,12 +236,6 @@ class NikeBot:
             cookies = pickle.load(open(self.cookies_file_path, "rb"))
             for cookie in cookies:
                 self.driver.add_cookie(cookie)
-            # with open(self.cookies_file_path, "rb") as cookiesfile:
-            #     cookies = pickle.load(cookiesfile)
-            #     for cookie in cookies:
-            #         self.driver.add_cookie(cookie)
-                #cookiesfile.close()
-            
             self.driver.refresh() # neccessary to load cookies just loaded;
             
             print("Cookies: ", cookers = self.driver.get_cookies())
@@ -276,6 +268,8 @@ class NikeBot:
             return self.add_to_cart()
 
     def add_to_cart(self):
+
+
         print("+[add_to_cart]: Attempting to click add_to_cart button")
         try:
             add2cartBtn = self.wait.until(EC.element_to_be_clickable(
@@ -283,7 +277,7 @@ class NikeBot:
             try:
                 self.actions.move_to_element(add2cartBtn).perform()
             except Exception as err:
-                print("+[add_to_cart]: error moving to add to cart button", str(err))
+                print("+[add_to_cart]: error moving to add to cart button", str(err.__class__))
                 self.driver.execute_script("arguments[0].scrollIntoView(true);", add2cartBtn)
                 print("+[add_to_cart]: scrolled into view successful")
                 self.wait.until(EC.element_to_be_clickable(
@@ -313,10 +307,13 @@ class NikeBot:
                 (By.XPATH, '//button[contains(text(), "Checkout")]'))).click()
             
         except TimeoutException as err:
-            pass
+            print(str(dir(err)))
+            print(" TimeoutException Error")
+            return self.close()
 
         except Exception as err:
             print(dir(err.__class__))
+            print(str(err.__getattribute__))
             print(f"+[go_to_cart]: {str(err.__class__)}")
             return self.close()
         else:
@@ -324,6 +321,7 @@ class NikeBot:
             return self.check_out()
                 
     def close(self):
+        time.sleep(30)
         return self.driver.close() # self.session_id
 
     def check_out(self):

@@ -4,5 +4,12 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"workbench.editorAssociations": [
+		{
+			"python.pythonPath" : "scripts\\Scripts\\python.exe",
+			"python.venvPath" : "scripts"
+		}
+		]
+	}
 }
