@@ -82,13 +82,13 @@ class NikeBot:
         # use maximzied when not using headless
         #chrome_options.add_argument('start-maximized')
         # chrome_options.add_argument('--window-size=1920,1080')
-        # self.chrome_options.add_argument('--window-size=414,896') 
+        self.chrome_options.add_argument('--window-size=414,896') 
         # do not verify ssl
         self.chrome_options.add_argument('verify_ssl="False"')
         # ignore certificate errors
         self.chrome_options.add_argument('ignore-certificate-errors')
         # applicable to windows os only
-        # chrome_options.add_argument('--disable-gpu')
+        self.chrome_options.add_argument('--disable-gpu')
         
         self.cookies_file_path = 'Backend Scripts/Cookies/nike_cookies.txt'
 
@@ -106,7 +106,7 @@ class NikeBot:
             'Access-Control-Allow-Origin': f'{self.url}',
             'SameSite': 'True',
         }
-        self.session_id = self.driver.session_id
+        # self.session_id = self.driver.session_id #thought i needed to close browser;
         #self.driver.implicitly_wait(1)
         self.wait = WebDriverWait(self.driver, delay)
         self.actions = ActionChains(self.driver)
@@ -124,6 +124,11 @@ class NikeBot:
             #will monitor the URL & select size (new function) & finally click add to cart
         self.driver.get(self.url)
         if (self.cookies) is not False:
+            try:
+                self.wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="nav-cart"]/a/div/span')))
+            except Exception as err:
+                print("error finding nav cart icon")
+                return self.close()
             print("+[main_loop]: loading cookies")
             self.load_cookies()
         # looks for cookies might want this above, then close connection, reopen with cookies already; 
@@ -173,14 +178,14 @@ class NikeBot:
                 (By.XPATH, '//input[@data-componentname="emailAddress"]'))).send_keys(self.username)
             #self.driver.find_element_by_xpath('//input[@data-componentname="emailAddress"]').send_keys(self.username)
         except Exception as err:
-            print(f"+[login_to_get_cookies]: Visibility of Email Input Element Not Found: {err}")
+            print(f"+[login_to_get_cookies]: Visibility of Email Input Element Not Found: {str(err.__class__)}")
             return self.close()
         else:
             self.driver.find_element_by_xpath('//input[@data-componentname="password"]').send_keys(self.password)
             # save screenshot for headless
             self.driver.save_screenshot(f"{self.driver.service.process.pid}-after entering email and password.png")
             # Click Sign In Button
-            self.wait.until(EC.visibility_of_element_located(
+            self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, '//input[@value="SIGN IN"]'))).click()
             # save screenshot for headless;
             
@@ -189,39 +194,59 @@ class NikeBot:
             #self.wait.until(EC.visibility_of_element_located((By.TAG_NAME, 'title')))
             # Need to wait until page refreshes to pull cookies;
             
-            while 'Login' in self.driver.title:
-                print("sleeping for 1 second until page refresh to grab cookies ------------------------------------------")
-                time.sleep(1)
+            self.wait.until(EC.title_is('Nike. Just Do It. Nike.com'))
 
-            print("WE WAITED UNTIL PAGE REFRESH TO GRAB COOKIES")
+            # while 'Login' in self.driver.title:
+            #     print("sleeping for 1 second until page refresh to grab cookies ------------------------------------------")
+            #     time.sleep(.5)
+
+            # print("Page Refreshed & Now Creating Cookies File")
+            print("TITLE ON NEW PAGE = ", str(self.driver.title))
             try:
-                self.create_cookies()
+                if(self.create_cookies()):
+                    pass
             except Exception as err:
-                print("Yeah hit the error")
+                print("Create Cookie Function Error:", str(err.__class__))
             else:
-                self.load_cookies()
+                print("create_cookies finished succesfully")
                 return True
 
     def create_cookies(self):
         # Create Cookie File (usually after login)
-        with open(self.cookies_file_path, "wb") as writeFile:
-            pickle.dump(self.driver.get_cookies(), writeFile)
-            #filehandler.close()
-        return True
+        # MUST MAKE SURE ON PAGE WANT TO COLLECT COOKIES FROM
+        # for example on login page, had to wait until title of page was not login then collect cookies
+        print("+[create_cookies]: Creating Cookies")
+        cookies_list = self.driver.get_cookies()
+        print(type(cookies_list))
+        while type(cookies_list) is not list:
+            print("+[create_cookies]: Create cookies not yet a list")
+        # print(type(cookies_list))
+        # print(cookies_list)
+        if((os.access(self.cookies_file_path, os.W_OK) == True)):
+            pickle.dump(cookies_list, open(self.cookies_file_path, "wb"))
+        # if((os.access(self.cookies_file_path, os.R_OK))):
+            return True
     def load_cookies(self):
         # Load Cookie File;
-        while not os.access(self.cookies_file_path, os.R_OK):
+
+        while (os.access(self.cookies_file_path, os.R_OK) == False):
             print("Not Readable Yet")
-            time.sleep(1)
+            time.sleep(.5)
         if(path.isfile(self.cookies_file_path)):
             print("+[load_cookies]: Cookie File Exists, Loading Cookies & Refreshing")
-
-            with open(self.cookies_file_path, "rb") as cookiesfile:
-                cookies = pickle.load(cookiesfile)
-                for cookie in cookies:
-                    self.driver.add_cookie(cookie)
+            
+            cookies = pickle.load(open(self.cookies_file_path, "rb"))
+            for cookie in cookies:
+                self.driver.add_cookie(cookie)
+            # with open(self.cookies_file_path, "rb") as cookiesfile:
+            #     cookies = pickle.load(cookiesfile)
+            #     for cookie in cookies:
+            #         self.driver.add_cookie(cookie)
                 #cookiesfile.close()
-                self.driver.refresh() # neccessary to load cookies just loaded;
+            
+            self.driver.refresh() # neccessary to load cookies just loaded;
+            
+            print("Cookies: ", cookers = self.driver.get_cookies())
 
     def select_size(self):
         try:
@@ -264,15 +289,19 @@ class NikeBot:
                 self.wait.until(EC.element_to_be_clickable(
                     (By.XPATH, '//button[@data-qa="add-to-cart"]'))).click()
         except Exception as err:
-            print(f'+[add-to-cart]: {err}')
+            print(f'+[add-to-cart]: {str(err.__class__)}')
             return self.close()
         else:
-            self.wait.until(EC.element_to_be_clickable(
-                (By.XPATH, '//button[@data-qa="add-to-cart"]'))).click()
+            try:
+                self.wait.until(EC.element_to_be_clickable(
+                    (By.XPATH, '//button[@data-qa="add-to-cart"]'))).click()
+            except Exception as err:
+                print("+[add-to-cart]: Add to cart button click failed:", str(err.__class__))
+            else:
             
-            # self.driver.save_screenshot(f"{self.driver.service.process.pid}-add to cart succesful.png")
-            print("+[add_to_cart]: self.add_to_cart successful")
-            return self.go_to_cart()
+            # self. driver.save_screenshot(f"{self.driver.service.process.pid}-add to cart succesful.png")
+                print("+[add_to_cart]: Add to cart button popup clicked successful")
+                return self.go_to_cart()
     def go_to_cart(self):
         # click iframe popup that says checkout;
         print("+[go_to_cart]: made it to go_to_cart")
@@ -282,12 +311,16 @@ class NikeBot:
             self.driver.save_screenshot(f"{self.driver.service.process.pid} checkout-popup.png")
             self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, '//button[contains(text(), "Checkout")]'))).click()
-            print("+[go_to_cart]: cart button on pop-up found, clicking")
+            
+        except TimeoutException as err:
+            pass
 
         except Exception as err:
-            print(f"+[go_to_cart]: {dir(err)}")
+            print(dir(err.__class__))
+            print(f"+[go_to_cart]: {str(err.__class__)}")
             return self.close()
         else:
+            print("+[go_to_cart]: cart button on pop-up found, clicking")
             return self.check_out()
                 
     def close(self):
@@ -307,7 +340,7 @@ class NikeBot:
         print("+[check_out_as_member]: Made it to checkout as member")
         time.sleep(5)
         # We're on page where we just need to fill in CVC and click 2 buttons to confirm order;
-        #time.sleep(20)
+        time.sleep(200)
         # self.driver.save_screenshot(f"{self.driver.service.process.pid} member checkout.png")
         cvc_field = self.wait.until(EC.visibility_of_element_located((By.XPATH, "//input[@id='cvNumber']")))
         cvc_field = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@id='cvNumber']"))).send_keys(self.cvc)
