@@ -1,0 +1,13 @@
+https://gist.github.com/sonya75/f4d1e4f9c8e1ef1b726e7d2863a02318
+
+BNBFIX for moabile sessions using requests, need to figure out how they get client_id
+
+
+https://s3.nikecdn.com/unite/scripts/unite.min.js - URL to find appVersion & experienceVersion
+
+
+
+iPhone XS Max
+--------------------
+"User-Agent" : "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
+
