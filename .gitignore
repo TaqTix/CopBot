@@ -6,5 +6,7 @@
 **.code-workspace
 **login_details.py
 **.png
-**__pycache__
-**/settings.json
+**/__pycache__
+**settings.json
+**chromedriver.exe
+**debug.log

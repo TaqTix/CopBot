@@ -64,12 +64,12 @@ class NikeBot:
         # driver = webdriver.Chrome(chrome_options = chrome_options)
         # Mobile Emulation for iOS device;
         mobile_emulation = {
-            # device metrics for iPhone XS Max
-        "deviceMetrics": { "width": 414, "height": 896, "pixelRatio": 3.0 },
-            # user agent for iPhone XS Max with latest iOS as of 11/17/2020
-            # Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1
-            # user agent for iPhone XS Max up to date software (chrome);
-        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
+                # device metrics for iPhone XS Max
+            "deviceMetrics": { "width": 414, "height": 896, "pixelRatio": 3.0 },
+                # user agent for iPhone XS Max with latest iOS as of 11/17/2020
+                # Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1
+                # user agent for iPhone XS Max up to date software (chrome);
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
         }
 
         self.chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)

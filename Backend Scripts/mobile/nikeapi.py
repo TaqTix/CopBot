@@ -1,6 +1,6 @@
 import requests
 import uuid
-from mobile/login_details import USERNAME, PASSWORD, CVC
+from login_details import USERNAME, PASSWORD, CVC
 
 # Registers a new Nike account (does NOT verify)
 def register(account):
@@ -43,25 +43,25 @@ def login(session, account):
     response = session.post(endpoint, json=payload)
     access_token = response.json()['access_token']
 
-    mobileResponse2 = session.get('')
+    #mobileResponse2 = session.get('')
 
 
-# session.headers['User-Agent'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1'
-# session.get('https://www.nike.com/launch')
-payload = {
-    'username': 'USERNAME',
-    'password': 'PASSWORD',
-    'ux_id': 'com.nike.commerce.snkrs.ios',
-    'client_id': '90C273E9EB9BE2720573E3B7DBD62FBA',
-    'grant_type': 'password',
-    'keepMeLoggedIn': 'true'
-}
-# endpoint = 'https://unite.nike.com/loginWithSetCookie'
-# Mobileresponse3 = session.post(endpoint, json=payload)
-# access_token = response.json()['access_token']
-# print(access_token)
-# print()
-# print(response.json())
+    # session.headers['User-Agent'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1'
+    # session.get('https://www.nike.com/launch')
+    # payload = {
+    #     'username': 'USERNAME',
+    #     'password': 'PASSWORD',
+    #     'ux_id': 'com.nike.commerce.snkrs.ios',
+    #     'client_id': 'G64vA0b95ZruUtGk1K0FkAgaO3Ch30sj',
+    #     'grant_type': 'password',
+    #     'keepMeLoggedIn': 'true'
+    # }
+    # endpoint = 'https://unite.nike.com/loginWithSetCookie'
+    # Mobileresponse3 = session.post(endpoint, json=payload)
+    # access_token = response.json()['access_token']
+    # print(access_token)
+    # print()
+    # print(response.json())
     return access_token
 
 # Checks if a Nike account is verified

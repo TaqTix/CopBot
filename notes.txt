@@ -11,3 +11,14 @@ iPhone XS Max
 --------------------
 "User-Agent" : "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
 
+
+
+Looks like in order to login you need the bm_sz and _abck cookies & 
+you can pregenerate them on the nike.com/launch page & then use
+those cookies in requests;
+
+
+https://www.programcreek.com/python/?project_name=theriley106%2FSneakerBotTutorials#
+https://github.com/theriley106/SneakerBotTutorials
+
+
