@@ -11,6 +11,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 import threading
 import requests
+import json
 
 # This is for Nike.com/launch only & on a computer;
 
@@ -33,20 +34,13 @@ class NikeBot:
         chrome_options = Options()
         # Setup chrome options for better performance / less issues with elements in the way
         # headless browser = No UI = Less Resources;
-        chrome_options.add_argument('--headless')
-
-        mobile_emulation = { 
-            "deviceName": "Google Nexus 5"
-            #"deviceMetrics": { "width": 414, "height": 896, "pixelRatio": 3.0 },
-		    #"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
-        }
-        chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
-        # incognito for no leftover cookies
+        # chrome_options.add_argument('--headless')
+        # incognito for no leftover cookies, will need to load cookies on after every request & refresh page to acutally send them
         chrome_options.add_argument('--incognito')
         # mobile user agent = Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1
-        # pc user agent = Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36
+        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36'
         # user agent for desktop chrome browser (google search what is my user agent for yours)
-        self.user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
+        # self.user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
         chrome_options.add_argument(f'user-agent={self.user_agent}')
         # disable infobars
         chrome_options.add_argument('disable-infobars')
@@ -57,51 +51,154 @@ class NikeBot:
         # use maximzied when not using headless
         #chrome_options.add_argument('start-maximized')
         # chrome_options.add_argument('--window-size=1920,1080')
-        chrome_options.add_argument('--window-size=414,896')
+        chrome_options.add_argument('--window-size=1500,800')
         # do not verify ssl
         chrome_options.add_argument('verify_ssl="False"')
         # ignore certificate errors
         chrome_options.add_argument('ignore-certificate-errors')
         # applicable to windows os only
         chrome_options.add_argument('--disable-gpu')
-        
+        # Mobile emulation; not working for login, login using regular browser, grab session cookies & pass to mobile;
+        # mobile_emulation = { 
+        #     "deviceName": "iPhone X"
+        #     #"deviceMetrics": { "width": 375, "height": 812, "pixelRatio": 3.0 },
+		#     #"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
+        # }
+        # chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
+
         # https://medium.com/@pyzzled/running-headless-chrome-with-selenium-in-python-3f42d1f5ff1d
         self.driver = webdriver.Chrome(executable_path='Backend Scripts\\chromedriver.exe', 
                             options=chrome_options) #, seleniumwire_options={'verify_ssl': False}
         # Modifying Headers for headless version
-        allow_origin = self.url.split("/")[2] # grabs just www.nike.com
-        self.driver.header_overrides = {
-            'Access-Control-Allow-Origin': f'{allow_origin}',
-            'SameSite': 'True',
-        } 
+        # allow_origin = self.url.split("/")[2] # grabs just www.nike.com
+        # self.driver.header_overrides = {
+        #     'Access-Control-Allow-Origin': f'{allow_origin}',
+        #     'SameSite': 'True',
+        # } 
         self.session_id = self.driver.session_id
         #self.driver.implicitly_wait(1)
         self.wait = WebDriverWait(self.driver, delay)
         self.actions = ActionChains(self.driver)
+        self.driver.set_page_load_timeout(delay)
         return self.driver
 
-    def getLoginCookies(self, driver):
-        s = requests.session()
-        res = s.get("https://www.nike.com/launch")
-        if res.status_code == 200:
-            res = s.get("https://www.nike.com/login")
-            if res.status_code == 200:
-                cookies_list = s.cookies
-                print("cookies list: ", cookies_list)
-                for cookie in cookies_list:
-                    driver.add_cookie(cookie)
-                return driver
+    def getLoginCookiesFromDriver(self):
+        self.driver.get("https://www.nike.com/launch/")
+        print()
+        print()
+        print()
+        print("Cookies from Driver: ", self.driver.get_cookies())
+        print()
+        print()
+        print()
+        print()
+        try: # ((By.XPATH, f'//button[contains(text(), "{self.size}")]'
+            self.wait.until(EC.element_to_be_clickable((By.XPATH), '//button[contains(text(), "Log In")]'))
+        except Exception as err:
+            print("Couldnt click login button", str(err))
+        cookies = self.driver.get_cookies()
+        cookie_file = open("Cookies_after_login.json", "w")
+        json.dump(cookies, cookie_file)
+        # cookie_file.write(json_cookies)
+        print("Cookies After Login Page:", self.driver.get_cookies())
+        print()
+        print()
+        print()
+        print()
+        print()
+        BrowserCookies = self.driver.get_cookies()
+        s = requests.Session()
+        c = [s.cookies.set(c['name'], c['value']) for c in BrowserCookies]
+        print("Session Cookies:", c)
+        return s
+        # s = requests.session()
+        # # res = s.get("https://www.nike.com/launch")
+        # # if res.status_code == 200:
+        # res = s.get("https://www.nike.com/login")
+        # if res.status_code == 200:
+        #     cookies_list = s.cookies
+        #     cookies_dict = s.cookies.get_dict()
+            
+        #     print("Cookies Dict: ", cookies_dict)
+        #     print()
+        #     print()
+        #     print()
+        #     print()
+
+        #     print("cookies list: ", cookies_list)
+        #     print()
+        #     print()
+        #     print()
+        #     print()
+        #     for cookie in cookies_list:
+                
+        #         driver.add_cookie(cookie)
+        #     return driver
 if __name__ == "__main__":
     url7 = 'https://www.nike.com/launch/t/adapt-auto-max-fireberry'
     nikeBot = NikeBot(url7, 'M 7.5', 'acrypto91@gmail.com', 'Charlie123!', False)
-    driver = nikeBot.setupHeadlessChrome()
-    driver = nikeBot.getLoginCookies(driver)
-    print()
-    print()
-    print()
-    print()
-    print("Cookies after hitting login page: ", driver.get_cookies())
+    user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
 
+    driver = nikeBot.setupHeadlessChrome()
+
+
+
+
+    session = nikeBot.getLoginCookiesFromDriver()
+    #session.headers.update({"Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"})
+    global CLIENT_ID, UX_ID
+    CLIENT_ID = 'PbCREuPr3iaFANEDjtiEzXooFl7mXGQ7'
+    UX_ID = 'com.nike.commerce.snkrs.web'
+    email = 'acrypto91@gmail.com'
+    password = 'Charlie123!'  
+    data = {
+        'username:': email,
+        'password:': password,
+        'client_id': CLIENT_ID,
+        'ux_id': UX_ID,
+        'grant_type': 'password',
+    }
+    params = {
+    'appVersion': '847',
+    'experienceVersion': '847',
+    'uxid': 'com.nike.commerce.snkrs.web',
+    'locale': 'en_US',
+    'backendEnvironment': 'identity',
+    'browser': 'Google%20Inc.',
+    'os': 'undefined',
+    'mobile': 'false',
+    'native': 'false',
+    'visit': '1',
+    'visitor': 'PbCREuPr3iaFANEDjtiEzXooFl7mXGQ7'
+    }
+    headers = {
+    'accept': '*/*',
+    'accept-encoding': 'gzip, deflate, br',
+    'accept-language': 'en-US,en;q=0.9',
+    'content-length': '170',
+    'content-type': 'application/json',
+    'origin': 'https://www.nike.com',
+    'referer': 'https://www.nike.com/launch',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-site',
+    'user-agent': user_agent,
+    }
+    json_data = json.dumps(data, indent=4)
+    response = session.post("https://unite.nike.com/login?", headers=headers, data=json_data, params=params)
+    print()
+    print()
+    print()
+    print()
+    print(response.status_code)
+    
+
+    print()
+    print()
+    print()
+    print()
+    # print("Cookies after hitting login page: ", driver.get_cookies())
+    driver.close()
             
 
     # def main_loop(self):

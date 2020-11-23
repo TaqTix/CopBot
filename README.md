@@ -11,3 +11,6 @@ Still Need to do:
         ElectronJS also provides capability to make executables for all platforms (i.e: Windows, Mac & Linux) which should all run the same;
     Figure out what model the DB table will need for accurate status & error information;
     
+
+
+    
