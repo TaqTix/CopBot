@@ -6,15 +6,27 @@ from urllib3.exceptions import InsecureRequestWarning,SubjectAltNameWarning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 urllib3.disable_warnings(urllib3.exceptions.SubjectAltNameWarning)
 from getAppExpVersions import getAppExpVersionsDict
+from getAuthToken import getAuthToken
 from login_details import USERNAME, PASSWORD
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from setupHeadlessChrome import setupHeadlessChrome
 
-def LoginGetAuthToken():
+
+def ChromeLoginGetAuthToken():
     driver = setupHeadlessChrome(mobile=False)
+    driver.wait = WebDriverWait(driver, 30, 0.01)
     driver.get("http://www.nike.com/launch")
-     try: # ((By.XPATH, f'//button[contains(text(), "{self.size}")]'
-            self.wait.until(EC.element_to_be_clickable((By.XPATH), '//button[contains(text()="Log In")]'))
-        except Exception as err:
+    # ((By.XPATH, f'//button[contains(text(), "{self.size}")]'
+    # "//button[text()[contains(.,'"+shoe_size_type+"')]]"
+    # sizeBtn = self.wait.until(EC.visibility_of_element_located((By.XPATH, f'//button[contains(text(), "{self.size}")]')))
+
+    try:
+        login_text = 'Log In'
+        driver.wait.until(EC.visibility_of_element_located((By.XPATH), f'//button[text()[contains(.,"{login_text}")]]'))
+        driver.wait.until(EC.visibility_of_element_located((By.XPATH), f"//button[contains(text(), '{login_text}')]"))
+    except Exception as err:
             print("Couldnt click login button", str(err))
     sess=requests.session()
     uid=str(uuid.uuid4())
@@ -38,4 +50,4 @@ def LoginGetAuthToken():
     print(ee.text)
 
 if __name__ == '__main__':
-    getAuthToken()
+    ChromeLoginGetAuthToken()

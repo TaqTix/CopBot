@@ -29,19 +29,16 @@ class NikeBot:
         self.password = str(password)
         self.guest_checkout = guest_checkout
 
-    def setupHeadlessChrome(self, mobile=False):       
+    def setupHeadlessChrome(self):       
         # open webdriver, incognito & start maximized
         chrome_options = Options()
         # Setup chrome options for better performance / less issues with elements in the way
         # headless browser = No UI = Less Resources;
-        chrome_options.add_argument('--headless')
+        # chrome_options.add_argument('--headless')
         # incognito for no leftover cookies, will need to load cookies on after every request & refresh page to acutally send them
         chrome_options.add_argument('--incognito')
         # mobile user agent = Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1
-        if mobile=False:
-            self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36'
-        else:
-            self.user_agent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1'
+        self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.193 Safari/537.36'
         # user agent for desktop chrome browser (google search what is my user agent for yours)
         # self.user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
         chrome_options.add_argument(f'user-agent={self.user_agent}')
@@ -61,14 +58,13 @@ class NikeBot:
         chrome_options.add_argument('ignore-certificate-errors')
         # applicable to windows os only
         chrome_options.add_argument('--disable-gpu')
-        if (mobile):
-            Mobile emulation; not working for login, login using regular browser, grab session cookies & pass to mobile;
-            mobile_emulation = { 
-                "deviceName": "iPhone X"
-                #"deviceMetrics": { "width": 375, "height": 812, "pixelRatio": 3.0 },
-                #"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
-            }
-            chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
+        # Mobile emulation; not working for login, login using regular browser, grab session cookies & pass to mobile;
+        # mobile_emulation = { 
+        #     "deviceName": "iPhone X"
+        #     #"deviceMetrics": { "width": 375, "height": 812, "pixelRatio": 3.0 },
+		#     #"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
+        # }
+        # chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
 
         # https://medium.com/@pyzzled/running-headless-chrome-with-selenium-in-python-3f42d1f5ff1d
         self.driver = webdriver.Chrome(executable_path='Backend Scripts\\chromedriver.exe', 
@@ -97,7 +93,7 @@ class NikeBot:
         print()
         print()
         try: # ((By.XPATH, f'//button[contains(text(), "{self.size}")]'
-            self.wait.until(EC.element_to_be_clickable((By.XPATH), '//button[contains(text()="Log In")]'))
+            self.wait.until(EC.element_to_be_clickable((By.XPATH), '//button[contains(text(), "Log In")]'))
         except Exception as err:
             print("Couldnt click login button", str(err))
         cookies = self.driver.get_cookies()
@@ -145,14 +141,14 @@ if __name__ == "__main__":
 
     driver = nikeBot.setupHeadlessChrome()
 
-    uuid = uuid.uuid4()
+    uuid = str(uuid.uuid4())
 
 
 
     session = nikeBot.getLoginCookiesFromDriver()
     #session.headers.update({"Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"})
     global CLIENT_ID, UX_ID
-    CLIENT_ID = 'PbCREuPr3iaFANEDjtiEzXooFl7mXGQ7'
+    CLIENT_ID = uuid
     UX_ID = 'com.nike.commerce.snkrs.web'
     email = 'acrypto91@gmail.com'
     password = 'Charlie123!'  
