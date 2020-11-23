@@ -12,7 +12,7 @@ import time
 import threading
 import requests
 import json
-
+import uuid
 # This is for Nike.com/launch only & on a computer;
 
 #GLOBAL VARS
@@ -141,6 +141,7 @@ if __name__ == "__main__":
 
     driver = nikeBot.setupHeadlessChrome()
 
+    uuid = uuid.uuid4()
 
 
 
