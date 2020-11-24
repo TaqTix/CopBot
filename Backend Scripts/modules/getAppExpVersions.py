@@ -15,7 +15,7 @@ def getAppExpVersionsDict():
     try:
         APPVERSION         = re.search(".appVersion..[0-9]*", uniteText).group().split('|')[2]
         EXPVERSION         = re.search(".experienceVersion..[0-9]*", uniteText).group().split('|')[2]
-        print("+[getAppExpVersions]: Successfully updated nike app version & experience version")
+        print("+[getAppExpVersions]: Successfully updated nike app version & experience version (", str(APPVERSION), ",", str(EXPVERSION), ")")
     except Exception as err:
         print("+[getAppExpVersions]: COULDN'T UPDATE APP & EXPERIECE VERSIONS, SETTING DEFAULTS='847'", str(err))
         APPVERSION         = '847'

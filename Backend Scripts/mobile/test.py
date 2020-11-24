@@ -116,7 +116,7 @@ def openHeadlessChrome(url):
     driver.get(url)
     return driver
 
-def reloadWithCookies(session, url):
+def reloadWithCookies(driver, url):
     driver_info = {}
     driver_info = driver.get_cookies()
     for cookie in driver_info:
@@ -163,7 +163,7 @@ driver = reloadWithCookies(driver, url)
 #driver.post("")
 
 # for cookie in cookies_list_login:
-#     cookies_list.append([cookide['name'],cookie['value']])
+#     cookies_list.append([cookie['name'],cookie['value']])
 # login_cookie_dict = dict(cookies_list)
 # print("updating cookies_dict with new cookies")
 # cookies_dict.update(login_cookie_dict)
@@ -183,8 +183,6 @@ print()
 # print("Type of cookies_dict")
 # print(type(cookies_dict))
 #res = driver.get("https://unite.nike.com/session.html")
-
-
 
 # s = requests.session()
 # print("attempting post to login")
@@ -220,7 +218,7 @@ print()
 #     'grant_type': 'password',
 # }
 # json_data = json.dumps(data, indent=4)
-
+# uuid = uuid.uuid4()
 # params = {
 # 'appVersion': '847',
 # 'experienceVersion': '847',
@@ -232,8 +230,7 @@ print()
 # 'mobile': 'false',
 # 'native': 'false',
 # 'visit': '1',
-# 'visitor': cookies_dict['AnalysisUserId'], #not sure if this is correct
-# 'upmId' : "" #not sure how this is determined
+# 'visitor': uuid,
 # }
 # print(cookies_dict['AnalysisUserId'])
 

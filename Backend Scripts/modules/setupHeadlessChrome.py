@@ -10,7 +10,7 @@ def setupHeadlessChrome(mobile=False):
     chrome_options = Options()
     # Setup chrome options for better performance / less issues with elements in the way
     # headless browser = No UI = Less Resources;
-    chrome_options.add_argument('--headless')
+    #chrome_options.add_argument('--headless')
     # incognito for no leftover cookies, will need to load cookies on after every request & refresh page to acutally send them
     chrome_options.add_argument('--incognito')
     # mobile user agent = Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1
@@ -32,7 +32,8 @@ def setupHeadlessChrome(mobile=False):
     # chrome_options.add_argument('--window-size=1920,1080')
     if(mobile):
         chrome_options.add_argument('--window-size=375,812')
-    chrome_options.add_argument('--window-size=1500,800')
+    else:
+        chrome_options.add_argument('--window-size=1500,800')
     # do not verify ssl
     chrome_options.add_argument('verify_ssl="False"')
     # ignore certificate errors
