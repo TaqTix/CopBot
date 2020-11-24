@@ -1,5 +1,5 @@
 from selenium.webdriver.chrome.options import Options
-from selenium import webdriver
+from seleniumwire import webdriver
 
 
 global delay
@@ -28,8 +28,8 @@ def setupHeadlessChrome(mobile=False):
     # disable sandbox to Bypass OS security Model
     chrome_options.add_argument('--no-sandbox')
     # use maximzied when not using headless
-    #chrome_options.add_argument('start-maximized')
-    # chrome_options.add_argument('--window-size=1920,1080')
+    # chrome_options.add_argument('start-maximized')
+    
     if(mobile):
         chrome_options.add_argument('--window-size=375,812')
     else:
@@ -44,23 +44,11 @@ def setupHeadlessChrome(mobile=False):
         #Mobile emulation; not working for login, login using regular browser, grab session cookies & pass to mobile;
         mobile_emulation = { 
             "deviceName": "iPhone X"
-            #"deviceMetrics": { "width": 375, "height": 812, "pixelRatio": 3.0 },
-            #"userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
-        }
+           }
         chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
 
     # https://medium.com/@pyzzled/running-headless-chrome-with-selenium-in-python-3f42d1f5ff1d
-    driver = webdriver.Chrome(executable_path='Backend Scripts\\chromedriver.exe', 
-                        options=chrome_options) #, seleniumwire_options={'verify_ssl': False}
-    # Modifying Headers for headless version
-    # allow_origin = url.split("/")[2] # grabs just www.nike.com
-    # driver.header_overrides = {
-    #     'Access-Control-Allow-Origin': f'{allow_origin}',
-    #     'SameSite': 'True',
-    # } 
-    # session_id = driver.session_id
-    # #driver.implicitly_wait(1)
-    # wait = WebDriverWait(driver, delay)
-    # actions = ActionChains(driver)
-    # driver.set_page_load_timeout(delay)
+    driver = webdriver.Chrome(executable_path='C:\\Users\\akrus\\Documents\\CopApp\\Backend Scripts\\modules\\chromedriver.exe', 
+                        options=chrome_options)
+    
     return driver

@@ -15,6 +15,7 @@ import time
 from selenium.webdriver.common.keys import Keys
 global MAX_RETRIES
 MAX_RETRIES = 10
+
 def ChromeLoginGetAuthToken():
     driver = setupHeadlessChrome(mobile=False)
     driver.wait = WebDriverWait(driver, 30, 0.01)
@@ -53,6 +54,10 @@ def ChromeLoginGetAuthToken():
         else:
             email_input.send_keys(USERNAME)
             emailEntered = True
+            print("Entered Username")
+            print()
+            print()
+            print()
     retries = 0
     # try to SEND KEYS TO PASSWORD INPUT
     passwordEntered=False
@@ -66,23 +71,48 @@ def ChromeLoginGetAuthToken():
         else:
             passwordEntered=True
             password_input.send_keys(PASSWORD)
+            print("Entered Password")
+            print()
+            print()
+            print()
     retries = 0
     # try to CLICK SUBMIT BUTTON & GRAB SESSION COOKIES;
     submitBtnClicked=False
     while(submitBtnClicked==False and retries < MAX_RETRIES):
-        signin_text = 'SIGN IN'
         try:
-            #submitBtn = driver.wait.until(EC.visibility_of_element_located((By.XPATH, "//button[contains(text(), '{signin_text}')]")))
-            submitBtn = driver.wait.until(EC.visibility_of_element_located((By.XPATH, f"//button[contains(text(), '{signin_text}')]")))
-            submitBtn = driver.wait.until(EC.element_to_be_clickable((By.XPATH, f"//button[contains(text(), '{signin_text}')]")))
-            #submitBtn = driver.wait.until(EC.element_to_be_clickable((By.XPATH, "//input[@data-componentname='password']")))
-            
+            submitBtn = driver.wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@value="SIGN IN"]'))) 
         except Exception as err:
             retries += 1
             print("Couldn't Click Submit Btn: Retrying:", MAX_RETRIES, "times") # need to add retry loop;
             print("Error Msg:", str(err))
         else:
+            time.sleep(3)
             submitBtn.click()
+            submitBtnClicked=True
+            
+            print("SUCCESS")
+            print()
+            print()
+            print()
+            print() 
+            print("Driver Cookies: ", driver.get_cookies())
+            print() 
+            print() 
+            print() 
+            print() 
+            print()
+            #print("Access Token: ", driver.get_cookie('access_token'))
+            for request in driver.requests:
+                if request.response:
+                    print(
+                        request.url,
+                        request.response.status_code,
+                        #request.response.headers['Content-Type'],
+                        request.response,
+                        #request.response.body,
+                    )
+    
+            
 
     retries = 0    
     print()
@@ -91,7 +121,7 @@ def ChromeLoginGetAuthToken():
     print()
     cookies=driver.get_cookies()
     print("Cookies After Login: ", cookies)
-    if cookies[access_token]:
+    if cookies[access_token] is not None:
         print()
         print()
         print()
