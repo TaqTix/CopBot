@@ -13,6 +13,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from setupHeadlessChrome import setupHeadlessChrome
 import time
 from selenium.webdriver.common.keys import Keys
+from collections import ChainMap
+from itertools import chain
 global MAX_RETRIES
 MAX_RETRIES = 10
 
@@ -94,11 +96,54 @@ def ChromeLoginGetAuthToken():
             # time.sleep(3)
             # submitBtn.click()
             # submitBtnClicked=True
+            print("attempting to grab cookies")
             cookies = driver.get_cookies()
+            print()
+            print()
+            print()
+            print()
+            print("Cookie List: ", cookies)
             cookies_dict = {}
             for cookie in cookies:
                 if 'expiry' in cookie:
                     cookie['expires'] = cookie.pop('expiry')
+                cookies_dict[cookie['name']] = cookie['value']
+            # cookies_dict.update(dict( chain( *map( dict.items, cookies))))
+            print()
+            print()
+            print()
+            print()
+            print("Cookies Dict: ", cookies_dict)
+            print()
+            print()
+            print()
+            print()
+                
+            # for cookie in cookies:
+            #     print()
+            #     print(cookie)
+            #     print()
+            #     if 'expiry' in cookie:
+            #         cookie['expires'] = cookie.pop('expiry')
+            #     if 'domain' in cookie:
+            #         cookie['domain'] =  cookies['domain']
+            #     if 'httpOnly' in cookie:
+            #         cookie['httpOnly']
+            #     cookies_dict.update(cookie)
+            
+            s = requests.session()
+            for cookie in cookies:
+                s.cookies.set(cookie['name'], cookie['value'])
+            print()
+            print()
+            print()
+            print()
+            print("Session Cookies: ", s.cookies)
+            print() 
+            print() 
+            print() 
+            print("Driver cookies as dict: ", cookies_dict) 
+            print() 
             print()
             print(len(cookies))
             print()
@@ -219,7 +264,8 @@ def ChromeLoginGetAuthToken():
     sess.headers.update({"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36","Accept":"*/*","Accept-Encoding":"gzip, deflate, br","Accept-Language":"en-US,en;q=0.9,ms;q=0.8"})
     # e=sess.post('https://api.nike.com/idn/shim/oauth/2.0/token',json=login_json,verify=False,timeout=30).json()
     d=dict()
-    d=getAppExpVersionsDict()
+    d=getAppExpVersionsDict(mobile=False)
+    print(d.keys())
     e=sess.post('https://unite.nike.com/login?appVersion='+d.get('APPVERSION')+'&experienceVersion='+d.get('EXPVERSION')+'&uxid=com.nike.commerce.nikedotcom.web&locale=en_US&backendEnvironment=identity&browser=Google%20Inc.&os=undefined&mobile=false&native=false&visit=1&visitor='+uid,json=login_json, verify=False,timeout=30)#.json()
     print(e.status_code)
     token=e["access_token"]
