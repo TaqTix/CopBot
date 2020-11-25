@@ -21,4 +21,5 @@ those cookies in requests;
 https://www.programcreek.com/python/?project_name=theriley106%2FSneakerBotTutorials#
 https://github.com/theriley106/SneakerBotTutorials
 
-
+# Below: talks about how to use the user-data-dir
+https://www.chromium.org/developers/creating-and-using-profiles
