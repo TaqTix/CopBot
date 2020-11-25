@@ -11,3 +11,4 @@
 **chromedriver.exe
 **debug.log
 **.cfg
+**/chrome_profile_dir

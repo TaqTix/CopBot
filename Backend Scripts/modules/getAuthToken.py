@@ -54,6 +54,10 @@ def ChromeLoginGetAuthToken():
         else:
             email_input.send_keys(USERNAME)
             emailEntered = True
+            print()
+            print()
+            print()
+            print()
             print("Entered Username")
             print()
             print()
@@ -64,7 +68,6 @@ def ChromeLoginGetAuthToken():
     while(passwordEntered==False and retries < MAX_RETRIES):
         try:
             password_input = driver.wait.until(EC.visibility_of_element_located((By.XPATH, "//input[@data-componentname='password']")))
-            
         except Exception as err:
             retries += 1
             print("Couldn't send keys: Password, Retrying", MAX_RETRIES, "times") # need to add retry loop;
@@ -86,31 +89,94 @@ def ChromeLoginGetAuthToken():
             print("Couldn't Click Submit Btn: Retrying:", MAX_RETRIES, "times") # need to add retry loop;
             print("Error Msg:", str(err))
         else:
-            time.sleep(3)
-            submitBtn.click()
-            submitBtnClicked=True
+            #click submit button; tried using selenium & kept getting ssl errors;
+            # going to try loading cookies into session;
+            # time.sleep(3)
+            # submitBtn.click()
+            # submitBtnClicked=True
+            cookies = driver.get_cookies()
+            cookies_dict = {}
+            for cookie in cookies:
+                if 'expiry' in cookie:
+                    cookie['expires'] = cookie.pop('expiry')
+            print()
+            print(len(cookies))
+            print()
+            print()
+            print()
+            print()
+            print()
+            print()
+            print("Driver Cookies List: ", driver.get_cookies())
+            print()
+            print()
+            print()
+            print()
+            print()
+            print("_abck:", cookies['_abck'])
+            print()
+            print()
+            print()
+            print()
+            print()
+            print("bm_sz:", cookies['bm_sz'])
+            print()
+            print()
+            print()
+            print()
+            print()
+            s = requests.session()
+            for cookie in cookies:
+                if 'httpOnly' in cookie:
+                        httpO = cookie.pop('httpOnly')
+                        cookie['rest'] = {'httpOnly': httpO}
+                if 'expiry' in cookie:
+                    cookie['expires'] = cookie.pop('expiry')
+                if 'sameSite' in cookie:
+                    cookie['sameSite'] = int(cookies['sameSite'])
+                s.cookies.set(**cookie)
             
-            print("SUCCESS")
             print()
             print()
             print()
+            print()
+            print()
+            print("Session Cookies: ", s.cookies)
+
+            print()
+            print()
+            print()
+            print()
             print() 
-            print("Driver Cookies: ", driver.get_cookies())
+            
+            print("Driver Cookies: ", cookies)
             print() 
             print() 
             print() 
             print() 
             print()
+
+            # def set_cookies(cookies, s):
+                
+
+                # return s
+
             #print("Access Token: ", driver.get_cookie('access_token'))
             for request in driver.requests:
                 if request.response:
-                    print(
-                        request.url,
-                        request.response.status_code,
-                        #request.response.headers['Content-Type'],
-                        request.response,
-                        #request.response.body,
-                    )
+                    print(request.url)
+                    print(request.response.status_code)
+                    if request.response.json() is not None:
+                        print(request.response.json())
+                    else:
+                        print("NO JSON FOUND")
+                    # print(
+                    #     request.url,
+                    #     request.response.status_code,
+                    #     #request.response.headers['Content-Type'],
+                    #     request.response
+                    #     #if request.response.json is not none: request.response.json,
+                    # )
     
             
 
@@ -121,18 +187,12 @@ def ChromeLoginGetAuthToken():
     print()
     cookies=driver.get_cookies()
     print("Cookies After Login: ", cookies)
-    if cookies[access_token] is not None:
-        print()
-        print()
-        print()
-        print()
-        print(cookies[access_token])
-    else:
-        print()
-        print()
-        print()
-        print()
-        print("No Access Token Found in Cookies")
+    print()
+    print()
+    print()
+    print()
+    print()
+    print(cookies)
     # value="SIGN IN" INPUT
     # data-componentname='emailAddress'
     # data-componentname='password'
