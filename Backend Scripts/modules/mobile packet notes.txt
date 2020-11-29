@@ -1,0 +1,56 @@
+POST /v1/open HTTP/1.1
+Host: api2.branch.io
+Content-Type: application/json
+X-NewRelic-ID: VQYGVF5SCBADUVBRBgAGVg== #requried but can easily be modified;
+Connection: close
+Accept: */*
+Accept-Language: en-us
+Content-Length: 1205
+Accept-Encoding: gzip, deflate
+User-Agent: SNKRS-inhouse/2010271554 CFNetwork/1206 Darwin/20.1.0
+
+{
+  "apple_testflight": false, # dont mess with
+  "os_version": "14.2", # just OS version can update as OS updates;
+  "ios_bundle_id": "com.nike.onenikecommerce", #required but editable with no change in response (200)
+  "debug": false, # dont change;
+  "screen_dpi": 3, # related to type of iPhone
+  "country": "US", # assume this is required due to multiple nations
+  "is_hardware_id_real": true,
+  "locale": "en_US",
+  "ad_tracking_enabled": false,
+  "device_fingerprint_id": "851968766333455279", #as long as this number is the same amt of digits it will work (200 when changed)
+  "sdk": "ios0.33.1", ()
+  "uri_scheme": "SNKRS",
+  "environment": "FULL_APP",
+  "connection_type": "wifi",
+  "previous_update_time": 1604060852004, # = 11/28/2020 @ 9:22pm (UTC)
+  "retryNumber": 0,
+  "facebook_app_link_checked": false,
+  "lastest_update_time": 1604060852004, # same as previous update time = 11/28/2020 @ 9:22pm (UTC)
+  "local_ip": "192.168.1.23", #ip of mobile device, can obviously rotate per thread;
+  "brand": "Apple",
+  "update": 0,
+  "cd": {
+    "pn": "com.nike.onenikecommerce",
+    "mv": "-1"
+  },
+  "cpu_type": "16777228",
+  "screen_height": 2688,
+  "apple_ad_attribution_checked": false,
+  "model": "iPhone11,6",
+  "branch_key": "key_live_dhx31LuIKd7rVjBuYxfn1jikuwf9R2wn", # this is required and need to determine when its set;
+  "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+  "first_install_time": 1578191420316,
+  "hardware_id": "702F2B88-BAA9-4071-89C8-4FF7CF56A587", # cna be changed
+  "os": "iOS",
+  "identity_id": "746180567519372792", # can be chnaged
+  "hardware_id_type": "vendor_id",
+  "latest_install_time": 1578191420316,
+  "screen_width": 1242,
+  "build": "18B92",
+  "language": "en",
+  "ios_vendor_id": "702F2B88-BAA9-4071-89C8-4FF7CF56A587",
+  "app_version": "4.12.0",
+  "device_carrier": "Verizon"
+}
