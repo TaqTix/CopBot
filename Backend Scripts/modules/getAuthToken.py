@@ -19,7 +19,7 @@ global MAX_RETRIES
 MAX_RETRIES = 10
 
 def ChromeLoginGetAuthToken():
-    driver = setupHeadlessChrome(mobile=False)
+    driver = setupHeadlessChrome(mobile=True, proxy=True, headless=False)
     driver.wait = WebDriverWait(driver, 30, 0.01)
     driver.get("http://www.nike.com/launch")
     # ((By.XPATH, f'//button[contains(text(), "{self.size}")]'
@@ -93,10 +93,23 @@ def ChromeLoginGetAuthToken():
         else:
             #click submit button; tried using selenium & kept getting ssl errors;
             # going to try loading cookies into session;
-            # time.sleep(3)
-            # submitBtn.click()
+            time.sleep(10)
+            submitBtn.click()
+            print()
+            print()
+            print()
+            print()
+            print()
+            print("attempting to grab cookies BEFORE clicking submit")
+            cookies = driver.get_cookies()
+            print("Cookies before login as list: ", cookies)
+            print()
+            print()
+            print()
+            print()
+            print()
             # submitBtnClicked=True
-            print("attempting to grab cookies")
+            print("attempting to grab cookies AFTER clicking submit")
             cookies = driver.get_cookies()
             print()
             print()
@@ -117,20 +130,7 @@ def ChromeLoginGetAuthToken():
             print()
             print()
             print()
-            print()
-                
-            # for cookie in cookies:
-            #     print()
-            #     print(cookie)
-            #     print()
-            #     if 'expiry' in cookie:
-            #         cookie['expires'] = cookie.pop('expiry')
-            #     if 'domain' in cookie:
-            #         cookie['domain'] =  cookies['domain']
-            #     if 'httpOnly' in cookie:
-            #         cookie['httpOnly']
-            #     cookies_dict.update(cookie)
-            
+            print()            
             s = requests.session()
             for cookie in cookies:
                 s.cookies.set(cookie['name'], cookie['value'])
@@ -158,13 +158,15 @@ def ChromeLoginGetAuthToken():
             print()
             print()
             print()
-            print("_abck:", cookies['_abck'])
+            if cookies['_abck'] is not None:
+                print("_abck:", cookies['_abck'])
             print()
             print()
             print()
             print()
             print()
-            print("bm_sz:", cookies['bm_sz'])
+            if cookies['bm_sz'] is not None:
+                print("bm_sz:", cookies['bm_sz'])
             print()
             print()
             print()
