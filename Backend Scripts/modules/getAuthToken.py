@@ -21,7 +21,7 @@ MAX_RETRIES = 10
 def ChromeLoginGetAuthToken():
     driver = setupHeadlessChrome(mobile=True, proxy=True, headless=False)
     driver.wait = WebDriverWait(driver, 30, 0.01)
-    driver.get("http://www.nike.com/launch")
+    driver.get("http://www.nike.com/")
     # ((By.XPATH, f'//button[contains(text(), "{self.size}")]'
     # "//button[text()[contains(.,'"+shoe_size_type+"')]]"
     # sizeBtn = self.wait.until(EC.visibility_of_element_located((By.XPATH, f'//button[contains(text(), "{self.size}")]')))

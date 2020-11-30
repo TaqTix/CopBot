@@ -1,7 +1,20 @@
+GET /_bm/get_params HTTP/1.1
+Host: api.nike.com
+Accept: */*
+X-NewRelic-ID: VQYGVF5SCBADUVBRBgAGVg==
+Cookie: ak_bmsc=A0F14A99C1363E8C23D60810DE5DA36117C42E4459730000F7B8C25F2EC6E517~plce75T2dbEpxdqyd4J6wrtNoGBTPHfXclZVdhiYp1Bd5+ce9J/TsA8GscX43jFuckXh0fqKz8C6EbYb5SV9/fTp4P9Lox+bwIQTa2TeNLXeObQYxR2TTtIt7EX5noFfvIfc3btw6l3gTxjkNorzmbSTdQNij/xcUSFQuosGyBRp1RW7tvmhnCSDKN0pg4QoB1VTYVSvqtYWiGcbincHvuUfL2KnqyT1NZ59tsWyATWIE=; AMCV_F0935E09512D2C270A490D4D%40AdobeOrg=1994364360%7CMCMID%7C83102086352340466099211600965390200237%7CMCAID%7CNONE%7CMCOPTOUT-1605919192s%7CNONE%7CvVersion%7C3.4.0; anonymousId=4ECD9617BC47BF8912FB83D273292631; s_ecid=MCMID%7C83102086352340466099211600965390200237
+User-Agent: SNKRS-inhouse/2010271554 CFNetwork/1206 Darwin/20.1.0
+Accept-Language: en-us
+Accept-Encoding: gzip, deflate
+Connection: close
+
+
+
+
 POST /v1/open HTTP/1.1
 Host: api2.branch.io
 Content-Type: application/json
-X-NewRelic-ID: VQYGVF5SCBADUVBRBgAGVg== #requried but can easily be modified;
+X-NewRelic-ID: VQYGVF5SCBADUVBRBgAGVg== #requried but can easily be modified; just needs to be same length;
 Connection: close
 Accept: */*
 Accept-Language: en-us
@@ -17,7 +30,7 @@ User-Agent: SNKRS-inhouse/2010271554 CFNetwork/1206 Darwin/20.1.0
   "screen_dpi": 3, # related to type of iPhone
   "country": "US", # assume this is required due to multiple nations
   "is_hardware_id_real": true,
-  "locale": "en_US",
+  "locale": "en_US", # change according to region;
   "ad_tracking_enabled": false,
   "device_fingerprint_id": "851968766333455279", #as long as this number is the same amt of digits it will work (200 when changed)
   "sdk": "ios0.33.1", ()
@@ -41,16 +54,34 @@ User-Agent: SNKRS-inhouse/2010271554 CFNetwork/1206 Darwin/20.1.0
   "model": "iPhone11,6",
   "branch_key": "key_live_dhx31LuIKd7rVjBuYxfn1jikuwf9R2wn", # this is required and need to determine when its set;
   "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
-  "first_install_time": 1578191420316,
+  "first_install_time": 1578191420316, # 11/28/2020 @ 9:45pm (UTC)
   "hardware_id": "702F2B88-BAA9-4071-89C8-4FF7CF56A587", # cna be changed
   "os": "iOS",
   "identity_id": "746180567519372792", # can be chnaged
   "hardware_id_type": "vendor_id",
-  "latest_install_time": 1578191420316,
+  "latest_install_time": 1578191420316, # 11/28/2020 @ 9:45pm (UTC)
   "screen_width": 1242,
   "build": "18B92",
   "language": "en",
-  "ios_vendor_id": "702F2B88-BAA9-4071-89C8-4FF7CF56A587",
-  "app_version": "4.12.0",
-  "device_carrier": "Verizon"
+  "ios_vendor_id": "702F2B88-BAA9-4071-89C8-4FF7CF56A587", # can just be changed;
+  "app_version": "4.12.0", # app version, can be changed still returns status 200;
+  "device_carrier": "Verizon" # can be changed still returns 200
 }
+
+unite.nike.com/login
+unite.nike.com/s3/mobile.html - gives 
+smokdus.nike.com/get/id? - gives s_ecid
+
+
+
+TO LOGIN:
+    query params:
+        appVersion & Exp Version - getAppExpVersions.py
+        uxid=com.nike.commerce.snkrs.ios
+        locale=en_US
+        backendEnviornment=identity
+        browser=Apple%20Computer%2C%20Inc.
+        os=undefined&mobile=true&native=true
+        visit=1 - this is obtained from the launch page using driver;
+        visitor=9e057823-aea3-4342-8ed2-e4cdd264832a - obatined from launch page using driver;
+
