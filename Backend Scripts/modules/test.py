@@ -37,6 +37,7 @@ print()
 print()
 print()
 print()
+print(res.co)
 
 driverCookiesList = driver.get_cookies()
 print("Driver cookies: ", type(driverCookiesList))
@@ -48,17 +49,64 @@ print()
 print()
 print()
 
-driverCookieDict= {}
-for ea in driverCookiesList:
-    print(ea)        
-    driverCookieDict.update({ea['name']: ea['value']})
+
+# grab driver cookies with domain, to use to create CookieJar (session) cookies;
+
+driverCookieDict = dict()
+driverCookieSet = set()
+newDriverCookieList = list()
+for eaDict in driverCookiesList:
+    for item in eaDict.items():
+        # temp = {"domain": eaDict['domain'], "name": eaDict['name'], "value": eaDict['value']}
+        temp = {eaDict['domain'], eaDict['name'], eaDict['value']}
+        driverCookieDict.update(temp)
+        temp = tuple(temp)
+        if temp not in driverCookieSet:
+            driverCookieSet.add(temp)
+            newDriverCookieList.append(temp)
+# need to grab headers from response
+# THIS IS WHERE I STOPPED WORKING & C/P From jupyter notebook;
+import re
+tempCookies = temp['Set-Cookie']
+print(tempCookies)
+# get anonId cookies;
+anonymousId = re.search('anonymousId=\S*', tempCookies)
+if anonymousId:
+    anonymousId.group()
+    print("\n\n\n")
+    anonymousId_value = anonymousId.split("=")[1]
+    print("Anonymous Id:", anonymousId_value)
+    print("\n\n\n")
+else:
+    print("didnt find Anonymous Id")
+# Get ak_bmsc cookies; everthing except anonid has domain of .nike.com
+ak_bmsc = re.search('ak_bmsc=\S*', tempCookies)
+if(ak_bmsc):
+    ak_bmsc_value = ak_bmsc.group()
+    ak_bmsc_value = ak_bmsc_value.split("=", 1)[1]
+    #print(ak_bmsc)
+    print("ak_bmsc:", ak_bmsc_value)
+else:
+    print("didnt find ak_bmsc")
+# get bm_mi
+
+# domain name value tuple in newDriverCookieList
+for tu in newDriverCookieList:
+    for domain,name,value in tu:
+        cookie_obj = requests.cookies.create_cookie(domain=domain,name=name,value=value)
+        #sess.cookies.set_cookie(cookie_obj)
+
 
 print()
 print()
 print()
 print()
-print("MY FUCKIN driverCookieDict: ", driverCookieDict)
-print(driverCookieDict.keys())
+print("Driver Cookie Set: ", driverCookieSet)
+print()
+print()
+print()
+# print("MY FUCKIN driverCookieDict: ", driverCookieDict)
+# print(driverCookieDict.keys())
 #del driverCookieDict['RT']
 
 print()
