@@ -12,3 +12,4 @@
 **debug.log
 **.cfg
 **/chrome_profile_dir
+**/platform-tools/*

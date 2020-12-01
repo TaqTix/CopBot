@@ -23,3 +23,17 @@ https://github.com/theriley106/SneakerBotTutorials
 
 # Below: talks about how to use the user-data-dir
 https://www.chromium.org/developers/creating-and-using-profiles
+
+Android SDK Path:
+C:\Users\akrus\AppData\Local\Android\Sdk
+
+ADB Path
+C:\Users\akrus\AppData\Local\Android\Sdk\platform-tools
+>adb 
+uiautomation.bat - used to find path & ID for python to click
+C:\Users\akrus\AppData\Local\Android\Sdk\tools\bin
+>uiautomation
+
+
+
+

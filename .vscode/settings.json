@@ -1,6 +1,8 @@
 {
     "python.pythonPath": "scripts\\Scripts\\python.exe",
     "python.venvFolders": [
-        "C:\\Users\\there\\Documents\\Austin\\CopBot"
+        "C:\\Users\\%username%\\Documents\\Austin\\CopApp"
     ],
+    "emulator.emulatorPathWindows": "C:\\Users\\%username%\\AppData\\Local\\Android\\Sdk\\tools\\emulator.exe",
+    
 }
