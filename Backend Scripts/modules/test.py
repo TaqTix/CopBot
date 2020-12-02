@@ -28,10 +28,45 @@ print()
 print()
 print()
 print()
+time.sleep(5)
+test = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
-print("getting mobile.html thru driver;")
-res = driver.get("https://unite.nike.com/s3/unite/mobile.html?mid=18959627270998287647537118415893677125?iOSSDKVersion=3.1.7&clientId=G64vA0b95ZruUtGk1K0FkAgaO3Ch30sj&uxId=com.nike.commerce.snkrs.ios&view=none&locale=en_US&backendEnvironment=identity&corsOverride=https://unite.nike.com&osVersion=14.2")
+# print("getting mobile.html thru driver;")
+# res = driver.get("https://unite.nike.com/s3/unite/mobile.html?mid=18959627270998287647537118415893677125?iOSSDKVersion=3.1.7&clientId=G64vA0b95ZruUtGk1K0FkAgaO3Ch30sj&uxId=com.nike.commerce.snkrs.ios&view=none&locale=en_US&backendEnvironment=identity&corsOverride=https://unite.nike.com&osVersion=14.2")
 
+loginRes = driver.get("https://www.nike.com/login")
+try:
+    email_input = driver.wait.until(EC.visibility_of_element_located((By.XPATH, '//input[@data-componentname="emailAddress"]')))
+except Exception as e:
+    print("Never found email input path")
+    driver.quit()
+else:
+    email_input.send_keys("acrypto91@gmail.com")
+try:
+    pass_input = driver.wait.until(EC.visibility_of_element_located((By.XPATH, '//input[@data-componentname="password"]')))
+except Exception as e:
+    print("Never found password input path")
+    driver.quit()
+else:
+    pass_input.send_keys("Charlie123!")
+try:
+    #//button[contains(text(), "{self.size}")]
+    signInBtn = driver.wait.until(EC.visibility_of_element_located((By.XPATH, '//input[@value="SIGN IN"]')))
+except Exception as e:
+    print("sign in button not clickable", str(e))
+    driver.quit()
+else:
+    time.sleep(10)
+    signInBtn.click()
+    # time.sleep(200)
+    # exit()
+time.sleep(5)
+print(driver.title)
+print()
+print()
+print()
+print("NOW SAVE COOKIES BITCH")
+exit()
 #print(res.text)a
 print()
 print()
@@ -114,10 +149,10 @@ print()
 print()
 
 
-sess = requests.session()
-sess.headers.update({"User-Agent":'Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1'})
-print("getting mobile.html through requests.session")
-resGet = sess.get("https://unite.nike.com/s3/unite/mobile.html?mid=18959627270998287647537118415893677125?iOSSDKVersion=3.1.7&clientId=G64vA0b95ZruUtGk1K0FkAgaO3Ch30sj&uxId=com.nike.commerce.snkrs.ios&view=none&locale=en_US&backendEnvironment=identity&corsOverride=https://unite.nike.com&osVersion=14.2")
+# sess = requests.session()
+# sess.headers.update({"User-Agent":'Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1'})
+# print("getting mobile.html through requests.session")
+# resGet = sess.get("https://unite.nike.com/s3/unite/mobile.html?mid=18959627270998287647537118415893677125?iOSSDKVersion=3.1.7&clientId=G64vA0b95ZruUtGk1K0FkAgaO3Ch30sj&uxId=com.nike.commerce.snkrs.ios&view=none&locale=en_US&backendEnvironment=identity&corsOverride=https://unite.nike.com&osVersion=14.2")
 
 
 print("+[Mobile.html]: Session Get Headers: ", pp.pprint(resGet.headers))

@@ -13,3 +13,5 @@
 **.cfg
 **/chrome_profile_dir
 **/platform-tools/*
+**/platform-tools/*
+**/Backend Scripts/platform-tools/*
