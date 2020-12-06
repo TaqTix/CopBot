@@ -1,4 +1,4 @@
-**/.vscode/*
+**/.vscode/**
 **/vscode/*
 **/scripts/*
 **/venv/*
@@ -12,3 +12,6 @@
 **debug.log
 **.cfg
 **/chrome_profile_dir
+**settings.json
+**/platform-tools/
+**.json
