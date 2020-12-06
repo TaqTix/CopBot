@@ -39,7 +39,7 @@ def openHeadlessChrome(url):
 			#"deviceName": "BlackBerry Z10"
 			#"deviceName": "BlackBerry Z30"
 			#"deviceName": "Google Nexus 4"
-			"deviceName": "Google Nexus 5"
+			# "deviceName": "Google Nexus 5"
 			#"deviceName": "Google Nexus S"
 			#"deviceName": "HTC Evo, Touch HD, Desire HD, Desire"
 			#"deviceName": "HTC One X, EVO LTE"

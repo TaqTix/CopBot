@@ -27,12 +27,13 @@ def setupHeadlessChrome(mobile=False, proxy=False, headless=True):
         chrome_options.add_argument('disable-infobars')
         # disable extensions
         chrome_options.add_argument('--disable-extensions')
+        chrome_options.add_argument(f'user-agent={user_agent}')
     else:
         user_agent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1'
 
     # user agent for desktop chrome browser (google search what is my user agent for yours)
     # user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
-    chrome_options.add_argument(f'user-agent={user_agent}')
+    
     
     # disable sandbox to Bypass OS security Model
     # chrome_options.add_argument('--no-sandbox')
@@ -57,7 +58,10 @@ def setupHeadlessChrome(mobile=False, proxy=False, headless=True):
     if (mobile):
         #Mobile emulation; not working for login, login using regular browser, grab session cookies & pass to mobile;
         mobile_emulation = { 
-            "deviceName": "iPhone X"
+            #"deviceName": "iPhone X"
+            "deviceMetrics": { "width": 375, "height": 812, "pixelRatio": 3.0 },
+            "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/86.0.4240.93 Mobile/15E148 Safari/604.1"
+    
            }
         chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
     else:
