@@ -29,4 +29,7 @@
 # Freeze pip requirements to txt
 pip freeze > requirements.txt
 # Install on different machine venv
-pip install -r requirements.txt
+pip install -r requirements.txtffff
+
+
+dumpsys window windows | grep -E "mCurrentFocus|mFocussedApp"

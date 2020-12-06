@@ -12,7 +12,6 @@
 **debug.log
 **.cfg
 **/chrome_profile_dir
-**settings.json
-**/platform-tools/
-**.json
-/.vscode/settings.json
+**/platform-tools/*
+**/platform-tools/*
+**/Backend Scripts/platform-tools/*
