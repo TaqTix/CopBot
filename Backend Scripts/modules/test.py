@@ -56,7 +56,7 @@ except Exception as e:
     print("sign in button not clickable", str(e))
     driver.quit()
 else:
-    time.sleep(10)
+    time.sleep(100)
     signInBtn.click()
     # time.sleep(200)
     # exit()
